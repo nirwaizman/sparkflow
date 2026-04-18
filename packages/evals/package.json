@@ -7,8 +7,21 @@
   "types": "./src/index.ts",
   "exports": { ".": "./src/index.ts" },
   "scripts": {
+    "eval": "tsx src/run.ts",
+    "eval:router": "tsx src/router.eval.ts",
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf .turbo *.tsbuildinfo"
+    "test": "vitest run",
+    "clean": "rm -rf .turbo *.tsbuildinfo reports"
   },
-  "devDependencies": { "typescript": "5.8.2" }
+  "dependencies": {
+    "@sparkflow/llm": "workspace:*",
+    "@sparkflow/shared": "workspace:*",
+    "promptfoo": "^0.100",
+    "zod": "3.25.28"
+  },
+  "devDependencies": {
+    "tsx": "^4",
+    "typescript": "5.8.2",
+    "vitest": "^2"
+  }
 }

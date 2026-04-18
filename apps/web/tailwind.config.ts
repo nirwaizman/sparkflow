@@ -18,6 +18,16 @@ const config: Config = {
           900: "#1e3a8a",
         },
       },
+      keyframes: {
+        // Used by the message-streaming indicator (3 dots, staggered).
+        "pulse-dot": {
+          "0%, 80%, 100%": { opacity: "0.2", transform: "scale(0.8)" },
+          "40%": { opacity: "1", transform: "scale(1)" },
+        },
+      },
+      animation: {
+        "pulse-dot": "pulse-dot 1s ease-in-out infinite",
+      },
     },
   },
   plugins: [],

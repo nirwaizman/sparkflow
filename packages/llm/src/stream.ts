@@ -12,8 +12,9 @@
  * without replaying the conversation, so callers should handle stream errors.
  */
 
-import { streamText } from "ai";
+import { streamText, simulateReadableStream } from "ai";
 import type { LanguageModelV1 } from "ai";
+import { MockLanguageModelV1 } from "ai/test";
 import { createAnthropic } from "@ai-sdk/anthropic";
 import { createGoogleGenerativeAI } from "@ai-sdk/google";
 import { createGroq } from "@ai-sdk/groq";
@@ -88,6 +89,35 @@ export function generateStream(
       causes.push(err);
       continue;
     }
+  }
+
+  // Degrade to a mock stream so local dev works without any API keys.
+  if (causes.length === 0) {
+    const lastUser = [...args.messages].reverse().find((m) => m.role === "user");
+    const text = lastUser?.content.slice(0, 200) ?? "(no user message)";
+    const content = `[mock provider] No API key configured. Echoing prompt for dev:\n\n${text}`;
+    const mockModel = new MockLanguageModelV1({
+      doStream: async () => ({
+        stream: simulateReadableStream({
+          chunks: [
+            ...content.match(/.{1,32}/g)!.map((delta) => ({
+              type: "text-delta" as const,
+              textDelta: delta,
+            })),
+            {
+              type: "finish" as const,
+              finishReason: "stop" as const,
+              usage: { promptTokens: 0, completionTokens: 0 },
+            },
+          ],
+        }),
+        rawCall: { rawPrompt: null, rawSettings: {} },
+      }),
+    });
+    return streamText({
+      model: mockModel,
+      messages: toCoreMessages(args.messages, args.system),
+    });
   }
 
   throw new AllProvidersFailedError(

@@ -8,7 +8,19 @@
   "exports": { ".": "./src/index.ts" },
   "scripts": {
     "typecheck": "tsc --noEmit",
+    "test": "vitest run",
     "clean": "rm -rf .turbo *.tsbuildinfo"
   },
-  "devDependencies": { "typescript": "5.8.2" }
+  "dependencies": {
+    "@sparkflow/shared": "workspace:*",
+    "@sparkflow/db": "workspace:*",
+    "@sparkflow/llm": "workspace:*",
+    "@sparkflow/rag": "workspace:*",
+    "drizzle-orm": "^0.36.0",
+    "zod": "3.25.28"
+  },
+  "devDependencies": {
+    "typescript": "5.8.2",
+    "vitest": "^2.0.0"
+  }
 }

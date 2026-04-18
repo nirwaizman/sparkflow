@@ -1,0 +1,158 @@
+[
+  {
+    "id": "chat-en-01",
+    "input": "Hi, how are you today?",
+    "expected": { "mode": "chat" },
+    "tags": ["en", "chat"]
+  },
+  {
+    "id": "chat-en-02",
+    "input": "Explain recursion like I'm five.",
+    "expected": { "mode": "chat" },
+    "tags": ["en", "chat"]
+  },
+  {
+    "id": "chat-he-01",
+    "input": "תסביר לי בבקשה מה זה סולר סיסטם",
+    "expected": { "mode": "chat" },
+    "tags": ["he", "chat"]
+  },
+  {
+    "id": "search-en-01",
+    "input": "What is the latest iPhone price in the US today?",
+    "expected": { "mode": "search", "mustContain": ["price"] },
+    "tags": ["en", "search"]
+  },
+  {
+    "id": "search-en-02",
+    "input": "Compare the current AWS and GCP pricing for GPU instances",
+    "expected": { "mode": "search" },
+    "tags": ["en", "search"]
+  },
+  {
+    "id": "search-he-01",
+    "input": "מה המחיר של ביטקוין היום?",
+    "expected": { "mode": "search" },
+    "tags": ["he", "search"]
+  },
+  {
+    "id": "research-en-01",
+    "input": "Please research and write a report on the state of solid-state batteries in 2026 with citations",
+    "expected": { "mode": "research" },
+    "tags": ["en", "research"]
+  },
+  {
+    "id": "research-en-02",
+    "input": "Investigate claims that GLP-1 drugs reduce cardiovascular risk; verify with sources",
+    "expected": { "mode": "research" },
+    "tags": ["en", "research"]
+  },
+  {
+    "id": "research-he-01",
+    "input": "חקור ונתח את השפעת הריבית על שוק הנדל\"ן בישראל, כולל מקורות",
+    "expected": { "mode": "research" },
+    "tags": ["he", "research"]
+  },
+  {
+    "id": "task-en-01",
+    "input": "Schedule a meeting with the design team for next Tuesday at 10am and send invites.",
+    "expected": { "mode": "task" },
+    "tags": ["en", "task"]
+  },
+  {
+    "id": "task-he-01",
+    "input": "קבע פגישה עם הצוות ביום שלישי הבא ב-10 בבוקר ושלח הזמנות",
+    "expected": { "mode": "task" },
+    "tags": ["he", "task"]
+  },
+  {
+    "id": "agent-team-en-01",
+    "input": "Assemble a multi-agent team (researcher, writer, critic) to draft a Series A pitch deck outline",
+    "expected": { "mode": "agent_team" },
+    "tags": ["en", "agent_team"]
+  },
+  {
+    "id": "agent-team-he-01",
+    "input": "הרכב צוות סוכנים: חוקר, כותב, מבקר — לבניית תוכנית שיווק",
+    "expected": { "mode": "agent_team" },
+    "tags": ["he", "agent_team"]
+  },
+  {
+    "id": "file-en-01",
+    "input": "Summarise the attached contract PDF and extract the payment terms.",
+    "expected": { "mode": "file" },
+    "tags": ["en", "file"]
+  },
+  {
+    "id": "file-he-01",
+    "input": "סכם את קובץ ה-PDF המצורף של החוזה וחלץ את תנאי התשלום",
+    "expected": { "mode": "file" },
+    "tags": ["he", "file"]
+  },
+  {
+    "id": "code-en-01",
+    "input": "Write a TypeScript function that debounces an async call and cancels in-flight invocations",
+    "expected": { "mode": "code" },
+    "tags": ["en", "code"]
+  },
+  {
+    "id": "code-en-02",
+    "input": "Refactor this React component to use hooks and add unit tests in vitest",
+    "expected": { "mode": "code" },
+    "tags": ["en", "code"]
+  },
+  {
+    "id": "code-he-01",
+    "input": "כתוב פונקציית טייפסקריפט שמבצעת debounce לקריאה אסינכרונית",
+    "expected": { "mode": "code" },
+    "tags": ["he", "code"]
+  },
+  {
+    "id": "image-en-01",
+    "input": "Generate an image of a cyberpunk tel aviv skyline at sunset, vertical 9:16",
+    "expected": { "mode": "image" },
+    "tags": ["en", "image"]
+  },
+  {
+    "id": "image-he-01",
+    "input": "צייר לי תמונה של קו רקיע סייברפאנק של תל אביב בשקיעה",
+    "expected": { "mode": "image" },
+    "tags": ["he", "image"]
+  },
+  {
+    "id": "memory-en-01",
+    "input": "Remember that my wife's birthday is March 14 and remind me one week before.",
+    "expected": { "mode": "memory" },
+    "tags": ["en", "memory"]
+  },
+  {
+    "id": "memory-he-01",
+    "input": "תזכור שיום ההולדת של אשתי ב-14 במרץ ותזכיר לי שבוע לפני",
+    "expected": { "mode": "memory" },
+    "tags": ["he", "memory"]
+  },
+  {
+    "id": "workflow-en-01",
+    "input": "Build a workflow: every Monday at 9am, fetch new leads from HubSpot and email them the welcome template.",
+    "expected": { "mode": "workflow" },
+    "tags": ["en", "workflow"]
+  },
+  {
+    "id": "workflow-he-01",
+    "input": "בנה אוטומציה: כל יום שני ב-9 בבוקר תביא לידים חדשים ותשלח להם מייל פתיחה",
+    "expected": { "mode": "workflow" },
+    "tags": ["he", "workflow"]
+  },
+  {
+    "id": "legal-en-01",
+    "input": "Draft a cease-and-desist letter for a trademark infringement under Israeli law.",
+    "expected": { "mode": "legal" },
+    "tags": ["en", "legal"]
+  },
+  {
+    "id": "legal-he-01",
+    "input": "נסח כתב תביעה בהוצאה לפועל על צ'ק שחזר מחוסר כיסוי",
+    "expected": { "mode": "legal" },
+    "tags": ["he", "legal"]
+  }
+]

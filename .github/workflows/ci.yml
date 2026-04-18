@@ -1,0 +1,163 @@
+name: CI
+
+on:
+  push:
+    branches: ['**']
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  TURBO_TELEMETRY_DISABLED: 1
+
+jobs:
+  install-cache:
+    name: Install & cache
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+
+      - name: Get pnpm store path
+        id: pnpm-store
+        shell: bash
+        run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Pack node_modules for downstream jobs
+        run: tar -I 'gzip -1' -cf node_modules.tgz node_modules apps/*/node_modules packages/*/node_modules || true
+
+      - name: Upload node_modules artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: node_modules
+          path: node_modules.tgz
+          retention-days: 1
+          if-no-files-found: warn
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    needs: install-cache
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+      - name: Download node_modules artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: node_modules
+      - name: Restore node_modules
+        run: tar -xf node_modules.tgz || pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    needs: install-cache
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+      - uses: actions/download-artifact@v4
+        with:
+          name: node_modules
+      - name: Restore node_modules
+        run: tar -xf node_modules.tgz || pnpm install --frozen-lockfile
+      # Best-effort: turbo succeeds even if a package has no `lint` task defined.
+      - run: pnpm lint
+
+  test-unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    needs: install-cache
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+      - uses: actions/download-artifact@v4
+        with:
+          name: node_modules
+      - name: Restore node_modules
+        run: tar -xf node_modules.tgz || pnpm install --frozen-lockfile
+      - run: pnpm test:unit
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    needs: install-cache
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+      - uses: actions/download-artifact@v4
+        with:
+          name: node_modules
+      - name: Restore node_modules
+        run: tar -xf node_modules.tgz || pnpm install --frozen-lockfile
+      - run: pnpm build
+
+  eval:
+    name: Eval (non-blocking)
+    runs-on: ubuntu-latest
+    needs: install-cache
+    # TODO: flip continue-on-error to false once evals are stable.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'pnpm'
+      - uses: actions/download-artifact@v4
+        with:
+          name: node_modules
+      - name: Restore node_modules
+        run: tar -xf node_modules.tgz || pnpm install --frozen-lockfile
+      - run: pnpm eval
