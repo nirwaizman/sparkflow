@@ -1,0 +1,148 @@
+/*
+ * SparkFlow UI — globals.css
+ *
+ * Import this file once at the top of your app entry (e.g.
+ * `app/globals.css` -> `@import "@sparkflow/ui/styles/globals.css";`).
+ * It defines the CSS variables that every primitive reads via
+ * `hsl(var(--token))`.
+ *
+ * Colors are kept as space-separated HSL triplets so Tailwind utilities can
+ * compose with alpha (e.g. `bg-primary/50`).
+ */
+
+:root,
+.light {
+  --bg: 0 0% 100%;
+  --fg: 222 47% 11%;
+
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+
+  --subtle: 210 40% 98%;
+  --subtle-foreground: 215 25% 27%;
+
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 250 84% 60%;
+
+  --primary: 250 84% 60%;
+  --primary-foreground: 0 0% 100%;
+
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222 47% 11%;
+
+  --accent: 262 83% 58%;
+  --accent-foreground: 0 0% 100%;
+
+  --success: 142 72% 38%;
+  --success-foreground: 0 0% 100%;
+
+  --warning: 38 92% 50%;
+  --warning-foreground: 30 60% 10%;
+
+  --danger: 0 84% 60%;
+  --danger-foreground: 0 0% 100%;
+
+  --radius-sm: 0.25rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+  --radius-3xl: 1.5rem;
+  --radius-full: 9999px;
+}
+
+.dark {
+  --bg: 222 47% 6%;
+  --fg: 210 40% 98%;
+
+  --muted: 217 33% 17%;
+  --muted-foreground: 215 20% 65%;
+
+  --subtle: 222 47% 9%;
+  --subtle-foreground: 210 40% 96%;
+
+  --card: 222 47% 8%;
+  --card-foreground: 210 40% 98%;
+
+  --popover: 222 47% 8%;
+  --popover-foreground: 210 40% 98%;
+
+  --border: 217 33% 20%;
+  --input: 217 33% 20%;
+  --ring: 250 84% 66%;
+
+  --primary: 250 84% 66%;
+  --primary-foreground: 222 47% 6%;
+
+  --secondary: 217 33% 17%;
+  --secondary-foreground: 210 40% 98%;
+
+  --accent: 262 83% 68%;
+  --accent-foreground: 222 47% 6%;
+
+  --success: 142 66% 45%;
+  --success-foreground: 0 0% 100%;
+
+  --warning: 38 92% 55%;
+  --warning-foreground: 30 60% 10%;
+
+  --danger: 0 72% 55%;
+  --danger-foreground: 0 0% 100%;
+}
+
+html,
+body {
+  background-color: hsl(var(--bg));
+  color: hsl(var(--fg));
+}
+
+/* Skeleton pulse — used by the <Skeleton /> primitive. */
+@keyframes sparkflow-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Shimmer — optional richer placeholder effect. */
+@keyframes sparkflow-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Radix Toast slide-in animations (RTL-aware via logical properties). */
+@keyframes sparkflow-toast-in {
+  from {
+    transform: translateY(-12px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes sparkflow-toast-out {
+  from {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateY(-12px);
+    opacity: 0;
+  }
+}

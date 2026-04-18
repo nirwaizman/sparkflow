@@ -1,65 +1,117 @@
-import type { GenerateArgs, GenerateResult, LlmProvider } from "../types";
-
 /**
- * Minimal OpenAI chat completions provider.
- * Will be replaced by the Vercel AI SDK adapter in WP-B1 full implementation.
- * This stub exists so apps/web can import a real provider before WP-B1 ships.
+ * OpenAI adapter using the Vercel AI SDK (`ai` + `@ai-sdk/openai`).
+ * Reads `OPENAI_API_KEY` from the environment and surfaces transient 5xx/429
+ * errors as `ProviderUnavailableError` so the gateway can fall back.
  */
+
+import { createOpenAI } from "@ai-sdk/openai";
+import { generateText, streamText } from "ai";
+import { optionalEnv } from "@sparkflow/shared";
+import { MissingApiKeyError } from "../errors";
+import type {
+  GenerateArgs,
+  GenerateResult,
+  LlmProvider,
+  StreamChunk,
+} from "../types";
+import {
+  buildUsage,
+  rethrowAsProviderError,
+  toCoreMessages,
+  toSdkTools,
+  toSdkToolChoice,
+} from "./_shared";
+
+const PROVIDER = "openai" as const;
+const DEFAULT_MODEL = "gpt-4o-mini";
+
+function client() {
+  const apiKey = optionalEnv("OPENAI_API_KEY");
+  if (!apiKey) {
+    throw new MissingApiKeyError(PROVIDER, "OPENAI_API_KEY");
+  }
+  return createOpenAI({ apiKey });
+}
+
 export const openaiProvider: LlmProvider = {
-  name: "openai",
+  name: PROVIDER,
+
   async generate(args: GenerateArgs): Promise<GenerateResult> {
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (!apiKey) {
-      throw new Error("OPENAI_API_KEY is not set");
+    const start = Date.now();
+    const model = args.model ?? DEFAULT_MODEL;
+    const openai = client();
+
+    try {
+      const result = await generateText({
+        model: openai(model),
+        messages: toCoreMessages(args.messages, args.system),
+        temperature: args.temperature ?? 0.4,
+        maxTokens: args.maxTokens,
+        tools: toSdkTools(args.tools),
+        toolChoice: toSdkToolChoice(args.toolChoice),
+      });
+
+      return {
+        content: result.text,
+        provider: PROVIDER,
+        model,
+        finishReason: result.finishReason,
+        toolCalls: result.toolCalls?.map((c) => ({
+          id: c.toolCallId,
+          name: c.toolName,
+          args: c.args,
+        })),
+        usage: buildUsage({
+          provider: PROVIDER,
+          model,
+          inputTokens: result.usage.promptTokens,
+          outputTokens: result.usage.completionTokens,
+          startedAt: start,
+        }),
+      };
+    } catch (err) {
+      rethrowAsProviderError(PROVIDER, err);
+    }
+  },
+
+  async *stream(args: GenerateArgs): AsyncIterable<StreamChunk> {
+    const start = Date.now();
+    const model = args.model ?? DEFAULT_MODEL;
+    const openai = client();
+
+    let result;
+    try {
+      result = streamText({
+        model: openai(model),
+        messages: toCoreMessages(args.messages, args.system),
+        temperature: args.temperature ?? 0.4,
+        maxTokens: args.maxTokens,
+        tools: toSdkTools(args.tools),
+        toolChoice: toSdkToolChoice(args.toolChoice),
+      });
+    } catch (err) {
+      rethrowAsProviderError(PROVIDER, err);
     }
 
-    const started = Date.now();
-    const body = {
-      model: args.model,
-      temperature: args.temperature ?? 0.4,
-      max_tokens: args.maxTokens,
-      messages: [
-        ...(args.system ? [{ role: "system", content: args.system }] : []),
-        ...args.messages.map((m) => ({ role: m.role, content: m.content })),
-      ],
-    };
-
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(body),
-      cache: "no-store",
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`OpenAI request failed (${response.status}): ${text}`);
+    try {
+      for await (const delta of result.textStream) {
+        yield { done: false, delta };
+      }
+      const usage = await result.usage;
+      const finishReason = await result.finishReason;
+      yield {
+        done: true,
+        finishReason,
+        usage: buildUsage({
+          provider: PROVIDER,
+          model,
+          inputTokens: usage.promptTokens,
+          outputTokens: usage.completionTokens,
+          startedAt: start,
+        }),
+      };
+    } catch (err) {
+      rethrowAsProviderError(PROVIDER, err);
     }
-
-    const json = (await response.json()) as {
-      choices?: Array<{ message?: { content?: string } }>;
-      usage?: { prompt_tokens?: number; completion_tokens?: number };
-    };
-
-    const content = json.choices?.[0]?.message?.content ?? "";
-    const inputTokens = json.usage?.prompt_tokens ?? 0;
-    const outputTokens = json.usage?.completion_tokens ?? 0;
-
-    return {
-      content,
-      provider: "openai",
-      model: args.model,
-      usage: {
-        provider: "openai",
-        model: args.model,
-        inputTokens,
-        outputTokens,
-        costUsd: 0, // real pricing table in WP-A5
-        latencyMs: Date.now() - started,
-      },
-    };
   },
 };

@@ -1,3 +1,5 @@
+import type { SourceItem } from "@sparkflow/shared";
+
 export const SYSTEM_PROMPT = `You are SparkFlow — a premium AI workspace assistant.
 
 Goals:
@@ -22,3 +24,30 @@ export const ROUTER_PROMPT = `Classify the user request into one of these modes:
 - legal: legal research in Hebrew / structured legal reasoning needed.
 
 Return strict JSON: {"mode":"...","confidence":0.0..1.0,"reasoning":"...","tools":[],"complexity":"low|medium|high"}`;
+
+/**
+ * Build a retrieval-grounded context block with `[1]..[n]` citation markers.
+ * Intended to be appended to the system prompt when the caller has already
+ * executed a web/file search. The block ends with an explicit instruction to
+ * cite inline so the model doesn't bury the sources.
+ */
+export function buildGroundingBlock(sources: SourceItem[]): string {
+  if (sources.length === 0) return "";
+  const lines: string[] = [
+    "",
+    "## Retrieved context",
+    "Cite inline using the numeric marker next to each source, e.g. [1]. Never invent URLs; if the context is insufficient, say so.",
+    "",
+  ];
+  sources.forEach((s, i) => {
+    const n = i + 1;
+    const published = s.publishedAt ? ` (${s.publishedAt})` : "";
+    lines.push(`[${n}] ${s.title}${published}`);
+    lines.push(`    URL: ${s.url}`);
+    if (s.snippet) {
+      lines.push(`    Snippet: ${s.snippet.replace(/\s+/g, " ").trim()}`);
+    }
+    lines.push("");
+  });
+  return lines.join("\n");
+}

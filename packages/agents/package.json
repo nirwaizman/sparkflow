@@ -10,5 +10,13 @@
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf .turbo *.tsbuildinfo"
   },
-  "devDependencies": { "typescript": "5.8.2" }
+  "dependencies": {
+    "@sparkflow/shared": "workspace:*",
+    "@sparkflow/llm": "workspace:*",
+    "@sparkflow/tools": "workspace:*",
+    "zod": "3.25.28"
+  },
+  "devDependencies": {
+    "typescript": "5.8.2"
+  }
 }

@@ -1,9 +1,19 @@
-import type { PlannerDecision } from "@sparkflow/shared";
-
 /**
- * Heuristic router used as fallback for the LLM-based classifier (WP-B2).
- * Keyword list covers English + Hebrew seeds. Real classifier is an LLM call.
+ * Request router: maps a user input to a `PlannerDecision`.
+ *
+ * Two paths exist:
+ *  - `heuristicRoute`: fast, zero-cost keyword match. Also the final fallback.
+ *  - `classifyWithLlm`: prompts a model to emit a structured `PlannerDecision`
+ *    matching `plannerDecisionSchema`. Any failure (provider error, invalid
+ *    JSON, validation error) degrades gracefully back to `heuristicRoute`.
  */
+
+import type { PlannerDecision } from "@sparkflow/shared";
+import { plannerDecisionSchema } from "@sparkflow/shared";
+import { generateObjectHelper } from "./structured";
+import { ROUTER_PROMPT } from "./prompts";
+import type { LlmProviderName } from "./types";
+
 const SEARCH_HINTS = [
   // en
   "today",
@@ -71,4 +81,39 @@ export function heuristicRoute(input: string): PlannerDecision {
     tools: [],
     complexity: "low",
   };
+}
+
+export type ClassifyOptions = {
+  model?: string;
+  provider?: LlmProviderName;
+};
+
+/**
+ * Call the router LLM to classify the request. Returns `heuristicRoute(input)`
+ * on any error. Never throws.
+ */
+export async function classifyWithLlm(
+  input: string,
+  opts?: ClassifyOptions,
+): Promise<PlannerDecision> {
+  try {
+    const { object } = await generateObjectHelper<PlannerDecision>({
+      schema: plannerDecisionSchema,
+      system: ROUTER_PROMPT,
+      messages: [
+        { id: "router-in", role: "user", content: input },
+      ],
+      model: opts?.model,
+      provider: opts?.provider,
+      temperature: 0.1,
+    });
+    return object;
+  } catch (err) {
+    console.warn(
+      `[router] classifyWithLlm failed, falling back to heuristic: ${
+        err instanceof Error ? err.message : String(err)
+      }`,
+    );
+    return heuristicRoute(input);
+  }
 }

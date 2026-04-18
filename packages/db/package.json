@@ -10,9 +10,21 @@
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "clean": "rm -rf .turbo *.tsbuildinfo"
+    "clean": "rm -rf .turbo *.tsbuildinfo",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "db:studio": "drizzle-kit studio",
+    "db:seed": "tsx src/seed.ts"
+  },
+  "dependencies": {
+    "@sparkflow/shared": "workspace:*",
+    "drizzle-orm": "^0.36.0",
+    "postgres": "^3.4.0"
   },
   "devDependencies": {
+    "@types/node": "22.13.10",
+    "drizzle-kit": "^0.28.0",
+    "tsx": "^4.0.0",
     "typescript": "5.8.2"
   }
 }
