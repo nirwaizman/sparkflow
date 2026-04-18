@@ -1,0 +1,26 @@
+{
+  "name": "sparkflow",
+  "version": "0.0.0",
+  "private": true,
+  "description": "SparkFlow — full-scale AI operating system monorepo",
+  "packageManager": "pnpm@9.15.9",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "clean": "turbo run clean && rm -rf node_modules",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\" --ignore-path .gitignore",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md,yml,yaml}\" --ignore-path .gitignore"
+  },
+  "devDependencies": {
+    "@types/node": "22.13.10",
+    "prettier": "3.4.2",
+    "turbo": "2.3.3",
+    "typescript": "5.8.2"
+  }
+}
