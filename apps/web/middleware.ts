@@ -27,6 +27,8 @@ const PUBLIC_EXACT = new Set<string>([
   "/login",
   "/signup",
   "/api/health",
+  // Stripe webhook: no session cookie, signature-verified in the handler.
+  "/api/billing/webhook",
   "/favicon.ico",
 ]);
 

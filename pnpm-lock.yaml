@@ -36,23 +36,14 @@ importers:
         specifier: 5.8.2
         version: 5.8.2
 
-  apps/web:
+  apps/admin:
     dependencies:
-      '@ai-sdk/react':
-        specifier: ^1
-        version: 1.2.12(react@19.0.0)(zod@3.25.28)
-      '@sentry/nextjs':
-        specifier: ^8
-        version: 8.55.1(@opentelemetry/context-async-hooks@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/core@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/instrumentation@0.57.2(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(next@15.2.4(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.59.1)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react@19.0.0)(webpack@5.106.2)
       '@sparkflow/auth':
         specifier: workspace:*
         version: link:../../packages/auth
       '@sparkflow/db':
         specifier: workspace:*
         version: link:../../packages/db
-      '@sparkflow/llm':
-        specifier: workspace:*
-        version: link:../../packages/llm
       '@sparkflow/observability':
         specifier: workspace:*
         version: link:../../packages/observability
@@ -62,6 +53,94 @@ importers:
       '@sparkflow/ui':
         specifier: workspace:*
         version: link:../../packages/ui
+      drizzle-orm:
+        specifier: ^0.36.0
+        version: 0.36.4(@libsql/client-wasm@0.17.2)(@opentelemetry/api@1.9.0)(@types/pg@8.6.1)(@types/react@19.0.10)(better-sqlite3@11.10.0)(postgres@3.4.9)(react@19.0.0)
+      lucide-react:
+        specifier: ^0.462
+        version: 0.462.0(react@19.0.0)
+      next:
+        specifier: 15.2.4
+        version: 15.2.4(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.59.1)(react-dom@19.0.0(react@19.0.0))(react@19.0.0)
+      react:
+        specifier: 19.0.0
+        version: 19.0.0
+      react-dom:
+        specifier: 19.0.0
+        version: 19.0.0(react@19.0.0)
+      zod:
+        specifier: 3.25.28
+        version: 3.25.28
+    devDependencies:
+      '@types/node':
+        specifier: 22.13.10
+        version: 22.13.10
+      '@types/react':
+        specifier: 19.0.10
+        version: 19.0.10
+      '@types/react-dom':
+        specifier: 19.0.4
+        version: 19.0.4(@types/react@19.0.10)
+      autoprefixer:
+        specifier: 10.4.20
+        version: 10.4.20(postcss@8.5.3)
+      postcss:
+        specifier: 8.5.3
+        version: 8.5.3
+      tailwindcss:
+        specifier: 3.4.17
+        version: 3.4.17(ts-node@10.9.2(@types/node@22.13.10)(typescript@5.8.2))
+      typescript:
+        specifier: 5.8.2
+        version: 5.8.2
+
+  apps/web:
+    dependencies:
+      '@ai-sdk/react':
+        specifier: ^1
+        version: 1.2.12(react@19.0.0)(zod@3.25.28)
+      '@sentry/nextjs':
+        specifier: ^8
+        version: 8.55.1(@opentelemetry/context-async-hooks@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/core@1.30.1(@opentelemetry/api@1.9.0))(@opentelemetry/instrumentation@0.57.2(@opentelemetry/api@1.9.0))(@opentelemetry/sdk-trace-base@1.30.1(@opentelemetry/api@1.9.0))(next@15.2.4(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(@playwright/test@1.59.1)(react-dom@19.0.0(react@19.0.0))(react@19.0.0))(react@19.0.0)(webpack@5.106.2)
+      '@sparkflow/agents':
+        specifier: workspace:*
+        version: link:../../packages/agents
+      '@sparkflow/auth':
+        specifier: workspace:*
+        version: link:../../packages/auth
+      '@sparkflow/billing':
+        specifier: workspace:*
+        version: link:../../packages/billing
+      '@sparkflow/db':
+        specifier: workspace:*
+        version: link:../../packages/db
+      '@sparkflow/entitlements':
+        specifier: workspace:*
+        version: link:../../packages/entitlements
+      '@sparkflow/llm':
+        specifier: workspace:*
+        version: link:../../packages/llm
+      '@sparkflow/observability':
+        specifier: workspace:*
+        version: link:../../packages/observability
+      '@sparkflow/rag':
+        specifier: workspace:*
+        version: link:../../packages/rag
+      '@sparkflow/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
+      '@sparkflow/tasks':
+        specifier: workspace:*
+        version: link:../../packages/tasks
+      '@sparkflow/tools':
+        specifier: workspace:*
+        version: link:../../packages/tools
+      '@sparkflow/ui':
+        specifier: workspace:*
+        version: link:../../packages/ui
+      '@sparkflow/workflows':
+        specifier: workspace:*
+        version: link:../../packages/workflows
       '@supabase/ssr':
         specifier: ^0.5
         version: 0.5.2(@supabase/supabase-js@2.103.3)
@@ -101,6 +180,9 @@ importers:
       shiki:
         specifier: ^1
         version: 1.29.2
+      stripe:
+        specifier: ^17
+        version: 17.7.0
       zod:
         specifier: 3.25.28
         version: 3.25.28
@@ -183,6 +265,31 @@ importers:
         specifier: 5.8.2
         version: 5.8.2
 
+  packages/billing:
+    dependencies:
+      '@sparkflow/db':
+        specifier: workspace:*
+        version: link:../db
+      '@sparkflow/shared':
+        specifier: workspace:*
+        version: link:../shared
+      drizzle-orm:
+        specifier: ^0.36.0
+        version: 0.36.4(@libsql/client-wasm@0.17.2)(@opentelemetry/api@1.9.0)(@types/pg@8.6.1)(@types/react@19.0.10)(better-sqlite3@11.10.0)(postgres@3.4.9)(react@19.0.0)
+      stripe:
+        specifier: ^17
+        version: 17.7.0
+      zod:
+        specifier: 3.25.28
+        version: 3.25.28
+    devDependencies:
+      typescript:
+        specifier: 5.8.2
+        version: 5.8.2
+      vitest:
+        specifier: ^2
+        version: 2.1.9(@types/node@22.13.10)(terser@5.46.1)
+
   packages/db:
     dependencies:
       '@sparkflow/shared':
@@ -207,6 +314,31 @@ importers:
       typescript:
         specifier: 5.8.2
         version: 5.8.2
+
+  packages/entitlements:
+    dependencies:
+      '@sparkflow/billing':
+        specifier: workspace:*
+        version: link:../billing
+      '@sparkflow/db':
+        specifier: workspace:*
+        version: link:../db
+      '@sparkflow/shared':
+        specifier: workspace:*
+        version: link:../shared
+      drizzle-orm:
+        specifier: ^0.36.0
+        version: 0.36.4(@libsql/client-wasm@0.17.2)(@opentelemetry/api@1.9.0)(@types/pg@8.6.1)(@types/react@19.0.10)(better-sqlite3@11.10.0)(postgres@3.4.9)(react@19.0.0)
+      zod:
+        specifier: 3.25.28
+        version: 3.25.28
+    devDependencies:
+      typescript:
+        specifier: 5.8.2
+        version: 5.8.2
+      vitest:
+        specifier: ^2
+        version: 2.1.9(@types/node@22.13.10)(terser@5.46.1)
 
   packages/evals:
     dependencies:
@@ -352,6 +484,37 @@ importers:
         specifier: 5.8.2
         version: 5.8.2
 
+  packages/tasks:
+    dependencies:
+      '@sparkflow/agents':
+        specifier: workspace:*
+        version: link:../agents
+      '@sparkflow/db':
+        specifier: workspace:*
+        version: link:../db
+      '@sparkflow/llm':
+        specifier: workspace:*
+        version: link:../llm
+      '@sparkflow/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@sparkflow/tools':
+        specifier: workspace:*
+        version: link:../tools
+      drizzle-orm:
+        specifier: ^0.36.0
+        version: 0.36.4(@libsql/client-wasm@0.17.2)(@opentelemetry/api@1.9.0)(@types/pg@8.6.1)(@types/react@19.0.10)(better-sqlite3@11.10.0)(postgres@3.4.9)(react@19.0.0)
+      zod:
+        specifier: 3.25.28
+        version: 3.25.28
+    devDependencies:
+      typescript:
+        specifier: 5.8.2
+        version: 5.8.2
+      vitest:
+        specifier: ^2
+        version: 2.1.9(@types/node@22.13.10)(terser@5.46.1)
+
   packages/tools:
     dependencies:
       '@sparkflow/llm':
@@ -431,6 +594,37 @@ importers:
       typescript:
         specifier: 5.8.2
         version: 5.8.2
+
+  packages/workflows:
+    dependencies:
+      '@sparkflow/db':
+        specifier: workspace:*
+        version: link:../db
+      '@sparkflow/llm':
+        specifier: workspace:*
+        version: link:../llm
+      '@sparkflow/shared':
+        specifier: workspace:*
+        version: link:../shared
+      '@sparkflow/tasks':
+        specifier: workspace:*
+        version: link:../tasks
+      '@sparkflow/tools':
+        specifier: workspace:*
+        version: link:../tools
+      drizzle-orm:
+        specifier: ^0.36.0
+        version: 0.36.4(@libsql/client-wasm@0.17.2)(@opentelemetry/api@1.9.0)(@types/pg@8.6.1)(@types/react@19.0.10)(better-sqlite3@11.10.0)(postgres@3.4.9)(react@19.0.0)
+      zod:
+        specifier: 3.25.28
+        version: 3.25.28
+    devDependencies:
+      typescript:
+        specifier: 5.8.2
+        version: 5.8.2
+      vitest:
+        specifier: ^2
+        version: 2.1.9(@types/node@22.13.10)(terser@5.46.1)
 
 packages:
 
@@ -7220,6 +7414,10 @@ packages:
   strip-json-comments@3.1.1:
     resolution: {integrity: sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==}
     engines: {node: '>=8'}
+
+  stripe@17.7.0:
+    resolution: {integrity: sha512-aT2BU9KkizY9SATf14WhhYVv2uOapBWX0OFWF4xvcj1mPaNotlSc2CsxpS4DS46ZueSppmCF5BX1sNYBtwBvfw==}
+    engines: {node: '>=12.*'}
 
   strnum@1.1.2:
     resolution: {integrity: sha512-vrN+B7DBIoTTZjnPNewwhx6cBA/H+IS7rfW68n7XxC1y7uoiGQBxaKzqucGUgavX15dJgiGztLJ8vxuEzwqBdA==}
@@ -15841,6 +16039,11 @@ snapshots:
   strip-json-comments@2.0.1: {}
 
   strip-json-comments@3.1.1: {}
+
+  stripe@17.7.0:
+    dependencies:
+      '@types/node': 22.13.10
+      qs: 6.15.1
 
   strnum@1.1.2: {}
 
