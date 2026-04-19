@@ -1,0 +1,22 @@
+{
+  "name": "@sparkflow/chrome-extension",
+  "private": true,
+  "version": "0.1.0",
+  "description": "SparkFlow Chrome extension: side panel chat, context-menu actions, and quick popup bound to the SparkFlow web backend.",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite build --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@crxjs/vite-plugin": "^2.0.0-beta.25",
+    "@types/chrome": "^0.0.287",
+    "@types/react": "19.0.10",
+    "@types/react-dom": "19.0.4",
+    "@vitejs/plugin-react": "^4",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "typescript": "5.8.2",
+    "vite": "^5"
+  }
+}

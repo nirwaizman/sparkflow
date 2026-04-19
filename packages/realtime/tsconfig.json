@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": "src",
+    "lib": ["dom", "dom.iterable", "es2022"]
+  },
+  "include": ["src/**/*"]
+}

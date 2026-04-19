@@ -1,0 +1,90 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "version": 2,
+  "buildCommand": "pnpm turbo run build --filter=@sparkflow/web",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "outputDirectory": "apps/web/.next",
+  "framework": "nextjs",
+  "regions": ["nrt1"],
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_URL": "@project_env_next_public_supabase_url",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@project_env_next_public_supabase_anon_key",
+    "NEXT_PUBLIC_APP_URL": "@project_env_next_public_app_url",
+    "NEXT_PUBLIC_POSTHOG_KEY": "@project_env_next_public_posthog_key",
+    "NEXT_PUBLIC_POSTHOG_HOST": "@project_env_next_public_posthog_host",
+    "NEXT_PUBLIC_SENTRY_DSN": "@project_env_next_public_sentry_dsn",
+    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": "@project_env_next_public_stripe_publishable_key"
+  },
+  "build": {
+    "env": {
+      "SUPABASE_SERVICE_ROLE_KEY": "@project_env_supabase_service_role_key",
+      "SUPABASE_DB_URL": "@project_env_supabase_db_url",
+      "STRIPE_SECRET_KEY": "@project_env_stripe_secret_key",
+      "STRIPE_WEBHOOK_SECRET": "@project_env_stripe_webhook_secret",
+      "OPENAI_API_KEY": "@project_env_openai_api_key",
+      "ANTHROPIC_API_KEY": "@project_env_anthropic_api_key",
+      "RESEND_API_KEY": "@project_env_resend_api_key",
+      "SENTRY_AUTH_TOKEN": "@project_env_sentry_auth_token",
+      "INNGEST_EVENT_KEY": "@project_env_inngest_event_key",
+      "INNGEST_SIGNING_KEY": "@project_env_inngest_signing_key"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/v1/:path*",
+      "destination": "/api/v1/:path*"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=(), interest-cohort=()"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.vercel-insights.com https://*.posthog.com https://js.stripe.com https://*.sentry.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: blob: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.posthog.com https://*.sentry.io https://api.openai.com https://api.anthropic.com https://api.stripe.com; frame-src https://js.stripe.com https://hooks.stripe.com; worker-src 'self' blob:; base-uri 'self'; form-action 'self'; frame-ancestors 'none';"
+        }
+      ]
+    },
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-store, max-age=0"
+        }
+      ]
+    }
+  ],
+  "functions": {
+    "apps/web/app/api/**/*.{js,ts}": {
+      "maxDuration": 60
+    },
+    "apps/web/app/api/chat/**/*.{js,ts}": {
+      "maxDuration": 300
+    },
+    "apps/web/app/api/sheets/generate/**/*.{js,ts}": {
+      "maxDuration": 300
+    }
+  },
+  "crons": []
+}

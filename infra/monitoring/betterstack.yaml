@@ -1,0 +1,86 @@
+# BetterStack (formerly Better Uptime) synthetic-check configuration for
+# SparkFlow. This file is the source of truth for ops; apply it with the
+# BetterStack Terraform provider or paste into the dashboard when bootstrapping.
+#
+# Status-page consumers:
+#   - status.sparkflow.io (public)
+#   - internal Slack channel #ops-alerts
+#
+# All monitors hit production by default. Preview environments get a
+# parallel set of monitors suffixed with `-preview` that escalate to
+# Slack only (no pager).
+
+policy:
+  # How long a check must remain failing before we page. Short enough to
+  # catch real outages, long enough to absorb a single bad Vercel edge.
+  confirmation_period_seconds: 60
+  # Geographic spread — a single-region failure should NOT page.
+  regions:
+    - us-east
+    - us-west
+    - eu-central
+    - ap-southeast
+  # Default cadence. Override per-monitor below.
+  check_cadence_seconds: 60
+
+monitors:
+  - name: web-health
+    url: https://sparkflow.io/api/health
+    method: GET
+    expected_status: 200
+    # `runHealthChecks()` flips this to 503 if any upstream is down.
+    # We deliberately alert on the status code, not the body.
+    body_match_regex: '"ok":true'
+    check_cadence_seconds: 30
+    escalation_policy: p1-pager
+
+  - name: web-homepage
+    url: https://sparkflow.io/
+    method: GET
+    expected_status: 200
+    check_cadence_seconds: 60
+    escalation_policy: p2-slack
+
+  - name: api-chat-stream-synthetic
+    url: https://sparkflow.io/api/chat/stream
+    method: POST
+    expected_status: 200
+    # Synthetic payload uses a dedicated demo account + conversation so we
+    # can filter it out of product analytics. The secret is stored as a
+    # BetterStack secret and templated at apply time.
+    headers:
+      content-type: application/json
+      x-synthetic-monitor: "1"
+      authorization: "Bearer ${SYNTHETIC_MONITOR_TOKEN}"
+    body: |
+      {"messages":[{"role":"user","content":"ping"}],"conversationId":"synthetic"}
+    check_cadence_seconds: 300
+    escalation_policy: p2-slack
+
+  - name: api-image-generate-synthetic
+    url: https://sparkflow.io/api/image/generate
+    method: GET
+    # The GET branch is a capability probe and costs no provider credits.
+    expected_status: 200
+    check_cadence_seconds: 300
+    escalation_policy: p2-slack
+
+  - name: stripe-webhook-reachable
+    url: https://sparkflow.io/api/billing/webhooks/stripe
+    method: POST
+    # We expect 400 here — this is Stripe-signed traffic and a synthetic
+    # POST should be rejected. Anything else indicates a routing break.
+    expected_status: 400
+    check_cadence_seconds: 300
+    escalation_policy: p1-pager
+
+escalation_policies:
+  - name: p1-pager
+    channels:
+      - pagerduty: sparkflow-primary
+      - slack: "#ops-alerts"
+    repeat_after_seconds: 300
+  - name: p2-slack
+    channels:
+      - slack: "#ops-alerts"
+    repeat_after_seconds: 1800

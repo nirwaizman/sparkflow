@@ -1,0 +1,30 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "projectName": "sparkflow-web",
+  "teamSlug": "sparkflow",
+  "framework": "nextjs",
+  "rootDirectory": ".",
+  "nodeVersion": "20.x",
+  "buildCommand": "pnpm turbo run build --filter=@sparkflow/web",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "outputDirectory": "apps/web/.next",
+  "devCommand": "pnpm --filter @sparkflow/web dev",
+  "ignoreCommand": "npx turbo-ignore @sparkflow/web",
+  "regions": ["nrt1"],
+  "publicSource": false,
+  "trustedIps": null,
+  "protectionBypass": {
+    "automationBypass": true
+  },
+  "git": {
+    "deploymentEnabled": {
+      "main": true,
+      "staging": true
+    },
+    "productionBranch": "main"
+  },
+  "autoAssignCustomDomains": true,
+  "passwordProtection": null,
+  "ssoProtection": null,
+  "notes": "Template for `vercel project add` / `vercel link`. Apply via the Vercel dashboard or the Vercel REST API — `vercel.json` at repo root remains the source of truth for build/runtime behavior."
+}

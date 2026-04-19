@@ -1,0 +1,25 @@
+{
+  "name": "@sparkflow/crm",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf .turbo *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@sparkflow/shared": "workspace:*",
+    "@sparkflow/llm": "workspace:*",
+    "papaparse": "^5",
+    "zod": "3.25.28"
+  },
+  "devDependencies": {
+    "typescript": "5.8.2",
+    "@types/papaparse": "^5.3"
+  }
+}

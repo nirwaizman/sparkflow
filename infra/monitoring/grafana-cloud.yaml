@@ -1,0 +1,149 @@
+# Grafana Cloud dashboard skeleton for SparkFlow.
+#
+# This YAML is translated into dashboard JSON by the Grafana provisioner
+# (either via the Grafana Cloud Terraform provider or the `grafana/grafana`
+# GitHub Action). Panels reference Prometheus metrics pushed by the
+# observability package's SLO flusher (see `flushSloToPushgateway` +
+# TODO `obs-slo-1`).
+#
+# Expected metric names once the flusher is implemented:
+#   sparkflow_http_request_duration_ms_bucket{route="..."}
+#   sparkflow_http_request_errors_total{route="..."}
+#   sparkflow_llm_tokens_total{provider="...", model="..."}
+#   sparkflow_llm_cost_usd_total{provider="...", model="..."}
+#   sparkflow_dependency_up{component="database|redis|langfuse|openai"}
+
+apiVersion: grafana.com/v1
+kind: Dashboard
+metadata:
+  name: sparkflow-slo
+  tags: [sparkflow, slo, prod]
+  folder: SparkFlow
+spec:
+  title: SparkFlow — Service SLOs
+  refresh: 30s
+  time:
+    from: now-6h
+    to: now
+
+  variables:
+    - name: route
+      type: query
+      query: label_values(sparkflow_http_request_duration_ms_bucket, route)
+      includeAll: true
+    - name: env
+      type: custom
+      options: [production, preview]
+      default: production
+
+  panels:
+    - title: p50 / p95 / p99 latency (ms)
+      type: timeseries
+      unit: ms
+      targets:
+        - legend: "p50 {{route}}"
+          expr: |
+            histogram_quantile(0.50,
+              sum by (le, route) (
+                rate(sparkflow_http_request_duration_ms_bucket{route=~"$route", env="$env"}[5m])
+              )
+            )
+        - legend: "p95 {{route}}"
+          expr: |
+            histogram_quantile(0.95,
+              sum by (le, route) (
+                rate(sparkflow_http_request_duration_ms_bucket{route=~"$route", env="$env"}[5m])
+              )
+            )
+        - legend: "p99 {{route}}"
+          expr: |
+            histogram_quantile(0.99,
+              sum by (le, route) (
+                rate(sparkflow_http_request_duration_ms_bucket{route=~"$route", env="$env"}[5m])
+              )
+            )
+      thresholds:
+        # SLO: p95 < 2500ms on chat/stream, < 8000ms on image/generate.
+        - value: 2500
+          color: yellow
+        - value: 8000
+          color: red
+
+    - title: Error rate (5xx / total)
+      type: timeseries
+      unit: percentunit
+      targets:
+        - legend: "{{route}}"
+          expr: |
+            sum by (route) (
+              rate(sparkflow_http_request_errors_total{route=~"$route", env="$env"}[5m])
+            )
+            /
+            sum by (route) (
+              rate(sparkflow_http_request_duration_ms_count{route=~"$route", env="$env"}[5m])
+            )
+      thresholds:
+        - value: 0.01
+          color: yellow
+        - value: 0.05
+          color: red
+
+    - title: LLM token spend ($ / hour)
+      type: timeseries
+      unit: currencyUSD
+      targets:
+        - legend: "{{provider}}/{{model}}"
+          expr: |
+            sum by (provider, model) (
+              rate(sparkflow_llm_cost_usd_total{env="$env"}[5m])
+            ) * 3600
+
+    - title: LLM tokens in/out (5m rate)
+      type: timeseries
+      unit: short
+      targets:
+        - legend: "in {{provider}}/{{model}}"
+          expr: |
+            sum by (provider, model) (
+              rate(sparkflow_llm_tokens_total{direction="input", env="$env"}[5m])
+            )
+        - legend: "out {{provider}}/{{model}}"
+          expr: |
+            sum by (provider, model) (
+              rate(sparkflow_llm_tokens_total{direction="output", env="$env"}[5m])
+            )
+
+    - title: Dependency up
+      type: stat
+      targets:
+        - legend: "{{component}}"
+          expr: |
+            min by (component) (sparkflow_dependency_up{env="$env"})
+      mappings:
+        - value: 1
+          text: UP
+          color: green
+        - value: 0
+          text: DOWN
+          color: red
+
+    - title: Error-budget burn rate (fast/slow)
+      type: timeseries
+      description: |
+        Fast = 1h window, slow = 6h window. Page when fast > 14.4 AND
+        slow > 6 (99.9% monthly objective). See alerts.md.
+      targets:
+        - legend: fast-1h
+          expr: |
+            (
+              sum(rate(sparkflow_http_request_errors_total{env="$env"}[1h]))
+              /
+              sum(rate(sparkflow_http_request_duration_ms_count{env="$env"}[1h]))
+            ) / (1 - 0.999)
+        - legend: slow-6h
+          expr: |
+            (
+              sum(rate(sparkflow_http_request_errors_total{env="$env"}[6h]))
+              /
+              sum(rate(sparkflow_http_request_duration_ms_count{env="$env"}[6h]))
+            ) / (1 - 0.999)

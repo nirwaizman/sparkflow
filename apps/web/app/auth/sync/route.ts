@@ -12,6 +12,7 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { getDb, memberships, organizations, users } from "@sparkflow/db";
 import { createSupabaseServerClient, ACTIVE_ORG_COOKIE } from "@sparkflow/auth";
+import { sendEmail, WelcomeEmail } from "@sparkflow/growth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -51,8 +52,9 @@ export async function POST() {
     .limit(1);
 
   let defaultOrgId: string | null = existingUser[0]?.defaultOrganizationId ?? null;
+  const isFirstLogin = existingUser.length === 0;
 
-  if (existingUser.length === 0) {
+  if (isFirstLogin) {
     await db.insert(users).values({
       id: user.id,
       email,
@@ -93,6 +95,26 @@ export async function POST() {
     } else {
       defaultOrgId = existingMembership[0]?.organizationId ?? null;
     }
+  }
+
+  // Fire a welcome email once — strictly on first login so we don't
+  // spam returning users. sendEmail is a no-op when RESEND_API_KEY is
+  // missing, so this is safe in local/dev environments.
+  if (isFirstLogin && email) {
+    const origin = new URL(
+      process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3001",
+    ).origin;
+    void sendEmail({
+      to: email,
+      subject: "Welcome to SparkFlow",
+      react: WelcomeEmail({
+        name: displayName,
+        workspaceUrl: `${origin}/welcome`,
+        docsUrl: `${origin}/docs`,
+      }),
+    }).catch(() => {
+      // Swallow — email should never block sign-in.
+    });
   }
 
   const response = NextResponse.json({ ok: true, organizationId: defaultOrgId });

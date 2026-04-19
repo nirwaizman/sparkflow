@@ -1,22 +1,27 @@
 /**
  * Web middleware.
  *
- * Two responsibilities:
+ * Three responsibilities:
  *  1. Route auth — redirect unauthenticated requests on protected paths
  *     to `/login?next=<path>`. We don't hit the DB here; we only verify
  *     that a Supabase auth cookie exists. Deep session resolution
  *     happens in Server Components via `getSession()`.
- *  2. Rate limiting (WP-A5 lightweight) — in-memory token bucket keyed
- *     by client IP. 60 req/min. `/api/health` is exempt. This is a
- *     best-effort single-process limiter intended to be replaced by an
- *     Upstash-backed implementation later; the single-process caveat
- *     means it won't hold across serverless instances.
+ *  2. Rate limiting — Upstash-backed via `@sparkflow/security`
+ *     (`rateLimitFor("api")`). Falls back to in-memory automatically
+ *     when Upstash envs are missing. `/api/health` is exempt.
+ *  3. Security headers — HSTS, XFO, nosniff, Referrer-Policy,
+ *     Permissions-Policy, plus a per-request CSP with nonce, applied to
+ *     every response.
  *
  * IMPORTANT: middleware runs on the Edge runtime. Do NOT import
  * `@sparkflow/auth` here — that module pulls in `postgres` + Drizzle,
- * which are not edge-safe.
+ * which are not edge-safe. `@sparkflow/security` is edge-safe (no node
+ * built-ins at import time; Upstash SDK is fetch-based).
  */
 import { NextResponse, type NextRequest } from "next/server";
+import { rateLimitFor } from "@sparkflow/security/rate-limit";
+import { buildCSP, generateNonce, getCSPHeaderName } from "@sparkflow/security/csp";
+import { applyDefaultSecurityHeaders } from "./lib/security/headers";
 
 // -----------------------------------------------------------------------
 // Public path matcher
@@ -68,19 +73,12 @@ function hasSupabaseAuthCookie(req: NextRequest): boolean {
 }
 
 // -----------------------------------------------------------------------
-// Rate limiter — in-memory token bucket per IP
+// Rate limiter
 // -----------------------------------------------------------------------
+// `rateLimitFor` caches the underlying limiter per-kind across invocations
+// within the same edge isolate, so we can call it unconditionally.
 
-interface Bucket {
-  count: number;
-  resetAt: number;
-}
-
-const RATE_WINDOW_MS = 60_000;
-const RATE_LIMIT = 60;
-const MAX_BUCKETS = 5_000; // rough LRU cap
-
-const buckets: Map<string, Bucket> = new Map();
+const limitApi = rateLimitFor("api");
 
 function clientIp(req: NextRequest): string {
   const fwd = req.headers.get("x-forwarded-for");
@@ -88,69 +86,64 @@ function clientIp(req: NextRequest): string {
   return req.headers.get("x-real-ip") ?? "unknown";
 }
 
-function rateLimit(ip: string): { ok: true } | { ok: false; retryAfter: number } {
-  const now = Date.now();
-  let bucket = buckets.get(ip);
-  if (!bucket || bucket.resetAt <= now) {
-    bucket = { count: 0, resetAt: now + RATE_WINDOW_MS };
-    buckets.set(ip, bucket);
-  }
-  bucket.count += 1;
+// -----------------------------------------------------------------------
+// Response decoration — security headers + CSP
+// -----------------------------------------------------------------------
 
-  // Opportunistic LRU: if the map is too large, drop the oldest bucket
-  // (Map iteration preserves insertion order).
-  if (buckets.size > MAX_BUCKETS) {
-    const firstKey = buckets.keys().next().value;
-    if (firstKey !== undefined) buckets.delete(firstKey);
-  }
-
-  if (bucket.count > RATE_LIMIT) {
-    return { ok: false, retryAfter: Math.max(1, Math.ceil((bucket.resetAt - now) / 1000)) };
-  }
-  return { ok: true };
+function decorateResponse(res: NextResponse, nonce: string): NextResponse {
+  applyDefaultSecurityHeaders(res.headers);
+  const dev = process.env.NODE_ENV !== "production";
+  const csp = buildCSP({ nonce, dev });
+  res.headers.set(getCSPHeaderName({ reportOnly: false }), csp);
+  // Expose the nonce so Server Components / `<Script nonce=...>` can read
+  // it via `headers()` in the App Router.
+  res.headers.set("x-nonce", nonce);
+  return res;
 }
 
 // -----------------------------------------------------------------------
 // Middleware
 // -----------------------------------------------------------------------
 
-export function middleware(req: NextRequest) {
+export async function middleware(req: NextRequest): Promise<NextResponse> {
   const { pathname } = req.nextUrl;
+  const nonce = generateNonce();
 
   // Rate limit everything except the health probe. Applied before auth
   // so unauthenticated floods also get capped.
   if (pathname !== "/api/health") {
     const ip = clientIp(req);
-    const result = rateLimit(ip);
-    if (!result.ok) {
-      return new NextResponse("Too Many Requests", {
+    const result = await limitApi(ip);
+    if (!result.success) {
+      const res = new NextResponse("Too Many Requests", {
         status: 429,
         headers: {
-          "retry-after": String(result.retryAfter),
+          "retry-after": String(result.retryAfter ?? 60),
           "content-type": "text/plain; charset=utf-8",
         },
       });
+      return decorateResponse(res, nonce);
     }
   }
 
   if (isPublicPath(pathname)) {
-    return NextResponse.next();
+    return decorateResponse(NextResponse.next(), nonce);
   }
 
   // Guest-mode bypass for API routes that implement their own guest gating
   // (e.g. /api/chat, /api/chat/stream). The route handler itself re-verifies.
   if (pathname.startsWith("/api/") && req.headers.get("x-guest-mode") === "1") {
-    return NextResponse.next();
+    return decorateResponse(NextResponse.next(), nonce);
   }
 
   if (!hasSupabaseAuthCookie(req)) {
     const loginUrl = req.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.search = `?next=${encodeURIComponent(pathname + req.nextUrl.search)}`;
-    return NextResponse.redirect(loginUrl);
+    return decorateResponse(NextResponse.redirect(loginUrl), nonce);
   }
 
-  return NextResponse.next();
+  return decorateResponse(NextResponse.next(), nonce);
 }
 
 export const config = {

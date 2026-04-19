@@ -5,6 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { getSession } from "@sparkflow/auth";
 import { createWorkflow, listWorkflows } from "@sparkflow/workflows";
+import { emitEvent } from "@/lib/public-api/emit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -84,6 +85,12 @@ export async function POST(req: NextRequest) {
     description: parsed.data.description,
     graph: parsed.data.graph,
     trigger: parsed.data.trigger,
+  });
+
+  emitEvent({
+    organizationId: session.organizationId,
+    event: "workflow.created",
+    data: { workflow: created },
   });
 
   return NextResponse.json({ workflow: created });

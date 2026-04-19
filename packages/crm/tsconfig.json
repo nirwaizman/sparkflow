@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@sparkflow/shared": ["../shared/src/index.ts"],
+      "@sparkflow/shared/*": ["../shared/src/*"],
+      "@sparkflow/llm": ["../llm/src/index.ts"],
+      "@sparkflow/llm/*": ["../llm/src/*"]
+    }
+  },
+  "include": ["src/**/*"]
+}

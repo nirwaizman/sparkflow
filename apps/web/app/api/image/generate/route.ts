@@ -23,6 +23,7 @@ import {
   type ImageResult,
 } from "@/lib/media/providers";
 import { uploadMedia } from "@/lib/media/storage";
+import { withMonitor } from "@/lib/monitoring/interceptors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -50,7 +51,7 @@ export async function GET() {
   return NextResponse.json({ providers: providerStatuses(IMAGE_PROVIDERS) });
 }
 
-export async function POST(request: NextRequest) {
+async function handlePost(request: NextRequest): Promise<Response> {
   try {
     const guestMode = request.headers.get("x-guest-mode") === "1";
     let session: Awaited<ReturnType<typeof requireSession>> | null = null;
@@ -191,3 +192,5 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+
+export const POST = withMonitor("api.image.generate", handlePost);

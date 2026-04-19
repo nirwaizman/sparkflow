@@ -3,6 +3,7 @@ export const dynamic = "force-dynamic";
 /**
  * Admin orgs list: org name, slug, member count, tier.
  */
+import Link from "next/link";
 import { count, desc, eq, sql } from "drizzle-orm";
 import {
   getDb,
@@ -45,6 +46,7 @@ export default async function OrgsPage() {
               <th className="px-3 py-2">Tier</th>
               <th className="px-3 py-2">Status</th>
               <th className="px-3 py-2">Created</th>
+              <th className="px-3 py-2"></th>
             </tr>
           </thead>
           <tbody>
@@ -62,12 +64,20 @@ export default async function OrgsPage() {
                 <td className="px-3 py-2" dir="ltr">
                   {o.createdAt.toISOString().slice(0, 10)}
                 </td>
+                <td className="px-3 py-2">
+                  <Link
+                    href={`/orgs/${o.id}`}
+                    className="text-xs text-brand-500 hover:underline"
+                  >
+                    Open
+                  </Link>
+                </td>
               </tr>
             ))}
             {rows.length === 0 && (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={7}
                   className="px-3 py-6 text-center text-xs text-[hsl(var(--muted-foreground))]"
                 >
                   No organizations yet.

@@ -1,0 +1,31 @@
+{
+  "name": "@sparkflow/realtime",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./provider/yjs": "./src/provider/yjs.ts",
+    "./presence": "./src/presence.ts",
+    "./share/links": "./src/share/links.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf .turbo *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@sparkflow/db": "workspace:*",
+    "@sparkflow/shared": "workspace:*",
+    "drizzle-orm": "^0.36.0",
+    "nanoid": "^5",
+    "yjs": "^13.6",
+    "y-websocket": "^2.1",
+    "y-protocols": "^1.0"
+  },
+  "devDependencies": {
+    "@types/node": "22.13.10",
+    "typescript": "5.8.2"
+  }
+}

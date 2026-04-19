@@ -8,6 +8,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { getSession } from "@sparkflow/auth";
 import { enqueueTask, listTasks } from "@sparkflow/tasks";
+import { emitEvent } from "@/lib/public-api/emit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -62,6 +63,14 @@ export async function POST(req: NextRequest) {
     userId: session.user.id,
     goal: parsed.data.goal,
     context: parsed.data.context,
+  });
+
+  // Fan out to webhook subscribers. Fire-and-forget: never fails the
+  // request path.
+  emitEvent({
+    organizationId: session.organizationId,
+    event: "task.created",
+    data: { task: record },
   });
 
   return NextResponse.json({ task: record });

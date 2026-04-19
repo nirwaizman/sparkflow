@@ -38,6 +38,7 @@ import { registerCoreTools, registry } from "@sparkflow/tools";
 // Use the subpath export to avoid pulling the Stripe SDK transitively
 // into this route's dependency graph.
 import { recordUsage } from "@sparkflow/billing/meter";
+import { withMonitor } from "@/lib/monitoring/interceptors";
 
 export const runtime = "nodejs";
 
@@ -117,10 +118,10 @@ function sseEncode(event: unknown): string {
   return `data: ${JSON.stringify(event)}\n\n`;
 }
 
-export async function POST(
+async function handlePost(
   request: NextRequest,
   context: { params: Promise<{ id: string }> },
-) {
+): Promise<Response> {
   let session;
   try {
     session = await requireSession();
@@ -218,3 +219,8 @@ export async function POST(
     },
   });
 }
+
+export const POST = withMonitor<{ params: Promise<{ id: string }> }>(
+  "api.agents.run",
+  handlePost,
+);

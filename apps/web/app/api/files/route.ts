@@ -13,6 +13,7 @@ import { getDb, files } from "@sparkflow/db";
 import { logger, captureError, incr } from "@sparkflow/observability";
 import { uploadToStorage } from "@/lib/files/storage";
 import { ingestFile } from "@/lib/files/ingest";
+import { emitEvent } from "@/lib/public-api/emit";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -136,6 +137,12 @@ export async function POST(req: NextRequest) {
       ingestFile(inserted.id).catch(() => {
         /* already logged */
       });
+    });
+
+    emitEvent({
+      organizationId: session.organizationId,
+      event: "file.uploaded",
+      data: { fileId: inserted.id, name, mime, sizeBytes: size },
     });
 
     return NextResponse.json({ id: inserted.id, status: "uploaded" }, { status: 202 });

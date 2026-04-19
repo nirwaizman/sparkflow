@@ -43,6 +43,7 @@ import {
   heuristicRoute,
 } from "@sparkflow/llm";
 import { searchWeb } from "@/lib/search";
+import { withMonitor } from "@/lib/monitoring/interceptors";
 
 export const runtime = "nodejs";
 
@@ -52,7 +53,7 @@ const SEARCHY_MODES: PlannerDecision["mode"][] = [
   "agent_team",
 ];
 
-export async function POST(request: NextRequest) {
+async function handlePost(request: NextRequest): Promise<Response> {
   let body: unknown;
   try {
     body = await request.json();
@@ -168,3 +169,5 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export const POST = withMonitor("api.chat.stream", handlePost);

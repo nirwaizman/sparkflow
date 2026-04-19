@@ -1,0 +1,36 @@
+{
+  "name": "@sparkflow/growth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./onboarding/steps": "./src/onboarding/steps.ts",
+    "./referrals/codes": "./src/referrals/codes.ts",
+    "./emails/send": "./src/emails/send.ts",
+    "./emails/templates/welcome": "./src/emails/templates/welcome.tsx",
+    "./emails/templates/trial-ending": "./src/emails/templates/trial-ending.tsx",
+    "./emails/templates/usage-alert": "./src/emails/templates/usage-alert.tsx",
+    "./emails/templates/referral-reward": "./src/emails/templates/referral-reward.tsx"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf .turbo *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@sparkflow/shared": "workspace:*",
+    "@sparkflow/observability": "workspace:*",
+    "@react-email/components": "^0.0.25",
+    "@react-email/render": "^1",
+    "resend": "^4"
+  },
+  "peerDependencies": {
+    "react": "19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.0.10",
+    "typescript": "5.8.2"
+  }
+}

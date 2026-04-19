@@ -11,7 +11,9 @@
     "./langfuse": "./src/langfuse.ts",
     "./sentry": "./src/sentry.ts",
     "./posthog": "./src/posthog.ts",
-    "./metrics": "./src/metrics.ts"
+    "./metrics": "./src/metrics.ts",
+    "./slo": "./src/slo.ts",
+    "./healthcheck": "./src/healthcheck.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

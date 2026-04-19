@@ -1,0 +1,61 @@
+{
+  "nav": {
+    "home": "Home",
+    "chat": "Chat",
+    "agents": "Agents",
+    "workflows": "Workflows",
+    "tasks": "Tasks",
+    "knowledge": "Knowledge",
+    "settings": "Settings",
+    "billing": "Billing",
+    "account": "Account",
+    "logout": "Log out",
+    "login": "Log in",
+    "signup": "Sign up"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "confirm": "Confirm",
+    "close": "Close",
+    "back": "Back",
+    "next": "Next",
+    "submit": "Submit",
+    "retry": "Retry",
+    "copy": "Copy",
+    "copied": "Copied",
+    "share": "Share",
+    "download": "Download",
+    "upload": "Upload",
+    "search": "Search",
+    "send": "Send",
+    "stop": "Stop"
+  },
+  "errors": {
+    "generic": "Something went wrong. Please try again.",
+    "network": "Network error. Check your connection.",
+    "unauthorized": "You are not authorized to perform this action.",
+    "notFound": "The page you are looking for does not exist.",
+    "rateLimited": "Too many requests. Please slow down.",
+    "validation": "Please check the fields and try again.",
+    "serverError": "Server error. We are on it.",
+    "timeout": "The request took too long."
+  },
+  "empty": {
+    "chats": "No chats yet. Start a new conversation.",
+    "agents": "No agents yet. Create your first agent.",
+    "workflows": "No workflows yet.",
+    "tasks": "No tasks queued.",
+    "knowledge": "No documents uploaded yet.",
+    "search": "No results found."
+  },
+  "status": {
+    "loading": "Loading...",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "thinking": "Thinking..."
+  }
+}
