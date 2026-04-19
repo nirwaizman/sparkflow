@@ -1,16 +1,17 @@
 export const dynamic = "force-dynamic";
 
 /**
- * Agents listing page (Server Component).
+ * Agents marketplace (Server Component).
  *
- * Shows a grid of built-in + org-scoped custom agents. Each card links
- * to the detail page and opens a quick-run modal (`QuickRun`, a client
- * component that streams SSE events from `/api/agents/[id]/run`).
+ * Lists the 11 built-in agents + any org-scoped custom agents, grouped
+ * by category. Each tile is rendered by `<AgentCard />` and links to
+ * the detail page. "Use agent" opens the run drawer via `?run=1`.
  */
 import Link from "next/link";
 import { eq, isNull, or } from "drizzle-orm";
 import { getDb, agents as agentsTable } from "@sparkflow/db";
 import { requireSession } from "@sparkflow/auth";
+import { Button } from "@sparkflow/ui";
 import {
   analystAgent,
   coderAgent,
@@ -25,7 +26,15 @@ import {
   writerAgent,
   type AgentDefinition,
 } from "@sparkflow/agents";
-import { QuickRun } from "./quick-run";
+import { AgentCard } from "@/components/agents/agent-card";
+import {
+  CATEGORY_LABEL,
+  CATEGORY_ORDER,
+  categoryOf,
+  colorClassesFor,
+  iconFor,
+  type AgentCategory,
+} from "@/components/agents/category-icon";
 
 const BUILT_INS: AgentDefinition[] = [
   researchAgent,
@@ -41,13 +50,14 @@ const BUILT_INS: AgentDefinition[] = [
   securityAgent,
 ];
 
-type Card = {
+type CardModel = {
   id: string;
   name: string;
   role: string;
-  description: string;
+  objective: string;
   tools: string[];
   builtIn: boolean;
+  version?: number;
 };
 
 export default async function AgentsPage() {
@@ -72,85 +82,92 @@ export default async function AgentsPage() {
     if (!ex || r.version > ex.version) latest.set(key, r);
   }
 
-  const cards: Card[] = [
-    ...BUILT_INS.map((d) => ({
+  const cards: CardModel[] = [
+    ...BUILT_INS.map<CardModel>((d) => ({
       id: `builtin:${d.id}`,
       name: d.name,
       role: d.role,
-      description: d.objective,
+      objective: d.objective,
       tools: d.tools,
       builtIn: true,
     })),
-    ...Array.from(latest.values()).map((r) => ({
+    ...Array.from(latest.values()).map<CardModel>((r) => ({
       id: r.id,
       name: r.name,
       role: r.role,
-      description: r.description ?? "",
+      objective: r.description ?? "",
       tools: Array.isArray(r.tools) ? (r.tools as string[]) : [],
       builtIn: false,
+      version: r.version,
     })),
   ];
 
+  // Bucket into categories preserving source order within each group.
+  const buckets = new Map<AgentCategory, CardModel[]>();
+  for (const cat of CATEGORY_ORDER) buckets.set(cat, []);
+  for (const c of cards) {
+    const cat = categoryOf({ id: c.id, name: c.name, role: c.role });
+    buckets.get(cat)!.push(c);
+  }
+
   return (
     <main className="mx-auto max-w-6xl px-4 py-8">
-      <div className="mb-6 flex items-center justify-between">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Agents</h1>
           <p className="text-sm text-[hsl(var(--muted-foreground))]">
-            Built-in SparkFlow agents plus custom ones defined for your
-            workspace.
+            Pick a ready-made SparkFlow agent or compose your own.
           </p>
         </div>
-        <Link
-          href="/agents/new"
-          className="rounded-md bg-brand-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-brand-500"
-        >
-          New agent
-        </Link>
+        <Button asChild>
+          <Link href="/agents/new">New agent</Link>
+        </Button>
       </div>
 
-      <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {cards.map((card) => (
-          <li
-            key={card.id}
-            className="flex flex-col rounded-lg border border-[hsl(var(--border))] bg-[hsl(var(--card))] p-4"
-          >
-            <div className="mb-2 flex items-center justify-between">
-              <h2 className="text-base font-semibold">{card.name}</h2>
-              {card.builtIn && (
-                <span className="rounded bg-[hsl(var(--muted))] px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
-                  built-in
+      <div className="flex flex-col gap-10">
+        {CATEGORY_ORDER.map((cat) => {
+          const items = buckets.get(cat) ?? [];
+          if (items.length === 0) return null;
+          const Icon = iconFor(cat);
+          const colors = colorClassesFor(cat);
+          return (
+            <section key={cat} aria-labelledby={`cat-${cat}`}>
+              <header className="mb-3 flex items-center gap-2">
+                <div
+                  className={`flex h-7 w-7 items-center justify-center rounded-md ${colors.badge}`}
+                  aria-hidden
+                >
+                  <Icon className="h-4 w-4" />
+                </div>
+                <h2
+                  id={`cat-${cat}`}
+                  className="text-sm font-semibold uppercase tracking-wide text-[hsl(var(--muted-foreground))]"
+                >
+                  {CATEGORY_LABEL[cat]}
+                </h2>
+                <span className="text-xs text-[hsl(var(--muted-foreground))]">
+                  · {items.length}
                 </span>
-              )}
-            </div>
-            <p className="mb-1 text-xs text-[hsl(var(--muted-foreground))]">
-              {card.role}
-            </p>
-            <p className="mb-3 line-clamp-3 text-sm">{card.description}</p>
-            {card.tools.length > 0 && (
-              <div className="mb-3 flex flex-wrap gap-1">
-                {card.tools.map((t) => (
-                  <span
-                    key={t}
-                    className="rounded bg-[hsl(var(--muted))] px-1.5 py-0.5 text-[10px] text-[hsl(var(--muted-foreground))]"
-                  >
-                    {t}
-                  </span>
+              </header>
+              <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {items.map((card) => (
+                  <li key={card.id}>
+                    <AgentCard
+                      id={card.id}
+                      name={card.name}
+                      role={card.role}
+                      objective={card.objective}
+                      tools={card.tools}
+                      builtIn={card.builtIn}
+                      version={card.version}
+                    />
+                  </li>
                 ))}
-              </div>
-            )}
-            <div className="mt-auto flex items-center gap-2">
-              <Link
-                href={`/agents/${encodeURIComponent(card.id)}`}
-                className="rounded-md border border-[hsl(var(--border))] px-2.5 py-1 text-xs hover:bg-[hsl(var(--muted))]"
-              >
-                Details
-              </Link>
-              <QuickRun agentId={card.id} agentName={card.name} />
-            </div>
-          </li>
-        ))}
-      </ul>
+              </ul>
+            </section>
+          );
+        })}
+      </div>
     </main>
   );
 }

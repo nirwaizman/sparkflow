@@ -1,4 +1,15 @@
+/**
+ * Root entry.
+ *
+ * - Logged-out visitors see the marketing landing (unchanged copy, only
+ *   extracted into `<MarketingHero />` so the auth branch can live here
+ *   cleanly).
+ * - Logged-in users get the new Genspark-style AI workspace home. The
+ *   page is rendered inside the public `/` route (not under the `(app)`
+ *   group) so org lookup and sidebar wiring are done locally.
+ */
 import Link from "next/link";
+import { eq } from "drizzle-orm";
 import {
   Bot,
   Compass,
@@ -14,6 +25,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@sparkflow/ui";
+import { getSession } from "@sparkflow/auth";
+import { getDb, organizations } from "@sparkflow/db";
+import { SessionProvider } from "./(app)/session-context";
+import { AppSidebar } from "@/components/shell/app-sidebar";
+import { TopBar } from "@/components/shell/top-bar";
+import { WorkspaceHome } from "@/components/shell/workspace-home";
 
 const FEATURES = [
   {
@@ -36,7 +53,39 @@ const FEATURES = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const session = await getSession();
+  if (!session) {
+    return <MarketingHero />;
+  }
+
+  const db = getDb();
+  const [org] = await db
+    .select({ name: organizations.name })
+    .from(organizations)
+    .where(eq(organizations.id, session.organizationId))
+    .limit(1);
+  const orgName = org?.name ?? "Workspace";
+
+  return (
+    <SessionProvider session={session}>
+      <div className="flex min-h-dvh bg-[hsl(var(--bg))] text-[hsl(var(--fg))]">
+        <AppSidebar />
+        <div className="flex min-h-dvh flex-1 flex-col">
+          <TopBar organizationName={orgName} />
+          <main className="flex-1 overflow-y-auto">
+            <WorkspaceHome
+              organizationName={orgName}
+              userName={session.user.name ?? null}
+            />
+          </main>
+        </div>
+      </div>
+    </SessionProvider>
+  );
+}
+
+function MarketingHero() {
   return (
     <div className="relative min-h-screen overflow-hidden bg-[hsl(var(--bg))] text-[hsl(var(--fg))]">
       <div

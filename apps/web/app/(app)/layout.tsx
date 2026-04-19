@@ -7,16 +7,17 @@
  * We then hydrate the session into a client context so nested client
  * components can read it without another round-trip.
  *
- * Pages under this group MUST be placed in `app/(app)/...`. The
- * existing `/` route intentionally stays outside the group for now so
- * the public landing/chat page keeps working unchanged.
+ * The shell matches the Genspark AI Workspace 4.0 layout: a narrow
+ * icon rail on the visual start edge, a slim top bar, and the routed
+ * content filling the remaining area.
  */
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { getDb, organizations } from "@sparkflow/db";
 import { getSession } from "@sparkflow/auth";
 import { SessionProvider } from "./session-context";
-import { TopBar } from "./top-bar";
+import { AppSidebar } from "@/components/shell/app-sidebar";
+import { TopBar } from "@/components/shell/top-bar";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
@@ -35,9 +36,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <SessionProvider session={session}>
-      <div className="flex min-h-dvh flex-col">
-        <TopBar organizationName={orgName} />
-        <div className="flex-1">{children}</div>
+      <div className="flex min-h-dvh">
+        <AppSidebar />
+        <div className="flex min-h-dvh flex-1 flex-col">
+          <TopBar organizationName={orgName} />
+          <main className="flex-1 overflow-y-auto">{children}</main>
+        </div>
       </div>
     </SessionProvider>
   );

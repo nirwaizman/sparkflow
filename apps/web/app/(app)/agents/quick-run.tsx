@@ -3,10 +3,15 @@
 /**
  * QuickRun — modal-style drawer that streams AgentEvents from
  * `/api/agents/[id]/run` using the browser `fetch` + ReadableStream
- * APIs (the endpoint is SSE-shaped but we parse by hand so we stay
- * a normal `fetch` call and don't need the EventSource POST hack).
+ * APIs.
+ *
+ * The endpoint is SSE-shaped but we parse by hand so we stay a normal
+ * `fetch` call and don't need the EventSource POST hack.
+ *
+ * Accepts optional `autoOpen` to open on mount — the detail page
+ * passes `true` when the URL carries `?run=1`.
  */
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type AgentEvent =
   | { type: "start"; payload: { agentId: string; prompt: string } }
@@ -20,15 +25,23 @@ type AgentEvent =
 export function QuickRun({
   agentId,
   agentName,
+  autoOpen = false,
+  triggerLabel = "Try",
 }: {
   agentId: string;
   agentName: string;
+  autoOpen?: boolean;
+  triggerLabel?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [prompt, setPrompt] = useState("");
   const [events, setEvents] = useState<AgentEvent[]>([]);
   const [running, setRunning] = useState(false);
   const bufferRef = useRef("");
+
+  useEffect(() => {
+    if (autoOpen) setOpen(true);
+  }, [autoOpen]);
 
   const parseSse = useCallback(
     (chunk: string, onEvent: (evt: AgentEvent) => void) => {
@@ -108,7 +121,7 @@ export function QuickRun({
         onClick={() => setOpen(true)}
         className="rounded-md bg-brand-600 px-2.5 py-1 text-xs font-medium text-white hover:bg-brand-500"
       >
-        Try
+        {triggerLabel}
       </button>
       {open && (
         <div
