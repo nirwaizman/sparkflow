@@ -42,7 +42,7 @@ function SignupInner() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const redirectTo = typeof window !== "undefined"
-    ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
+    ? `${window.location.origin}/auth/confirm?next=${encodeURIComponent(next)}`
     : undefined;
 
   async function onEmailSubmit(event: FormEvent<HTMLFormElement>) {

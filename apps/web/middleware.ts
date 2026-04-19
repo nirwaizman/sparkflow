@@ -37,7 +37,10 @@ const PUBLIC_PREFIXES: readonly string[] = [
   "/_next/",
   "/static/",
   "/og-images/",
-  "/auth/callback", // OAuth/magic-link return URL
+  "/auth/callback", // OAuth/magic-link return URL (PKCE / code flow)
+  "/auth/confirm",  // Magic-link client-side token handler (fragment flow)
+  "/auth/sync",     // Called by /auth/confirm to upsert user + org
+  "/auth/devlogin", // Dev-only one-shot login (guarded by NODE_ENV + DEV_LOGIN_EMAIL)
 ];
 
 function isPublicPath(pathname: string): boolean {

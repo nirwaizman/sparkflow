@@ -33,19 +33,39 @@ function slugify(input: string): string {
 export async function GET(req: NextRequest) {
   const url = new URL(req.url);
   const code = url.searchParams.get("code");
+  const tokenHash = url.searchParams.get("token_hash");
+  const tokenType = url.searchParams.get("type"); // magiclink | recovery | invite | signup
   const next = url.searchParams.get("next") ?? "/";
 
   // Guard against open-redirect: only accept same-origin relative paths.
   const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/";
 
-  if (!code) {
+  if (!code && !tokenHash) {
     const dest = new URL("/login?error=missing_code", url.origin);
     return NextResponse.redirect(dest);
   }
 
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-  if (error || !data.user) {
+
+  let data: { user: { id: string; email?: string | null; user_metadata?: unknown } | null } | null = null;
+  let error: { message: string } | null = null;
+
+  if (code) {
+    // OAuth / PKCE flow (Google etc.)
+    const result = await supabase.auth.exchangeCodeForSession(code);
+    data = result.data;
+    error = result.error;
+  } else if (tokenHash) {
+    // Magic link / email OTP flow
+    const result = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: (tokenType as "magiclink" | "recovery" | "invite" | "signup" | "email") ?? "magiclink",
+    });
+    data = result.data;
+    error = result.error;
+  }
+
+  if (error || !data?.user) {
     const dest = new URL(
       `/login?error=${encodeURIComponent(error?.message ?? "exchange_failed")}`,
       url.origin,

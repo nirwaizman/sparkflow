@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import type { SourceItem } from "@sparkflow/shared";
 import { useChatStream } from "@/lib/use-chat-stream";
 import {
@@ -31,7 +32,7 @@ function toUiMessage(m: {
 }
 
 export function ChatShell({ conversationId }: Props) {
-  const conversations = useChatStore(conversationListSelector);
+  const conversations = useChatStore(useShallow(conversationListSelector));
   const createConversation = useChatStore((s) => s.createConversation);
   const setActive = useChatStore((s) => s.setActive);
   const renameConversation = useChatStore((s) => s.renameConversation);

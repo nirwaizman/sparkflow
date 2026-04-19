@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import {
   Folder,
   MoreHorizontal,
@@ -45,7 +46,7 @@ export function Sidebar({
   onPickStarter?: (prompt: string) => void;
 }) {
   const [query, setQuery] = useState("");
-  const conversations = useChatStore(conversationListSelector);
+  const conversations = useChatStore(useShallow(conversationListSelector));
   const pinConversation = useChatStore((s) => s.pinConversation);
   const deleteConversation = useChatStore((s) => s.deleteConversation);
 

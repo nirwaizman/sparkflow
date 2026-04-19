@@ -7,11 +7,34 @@
  * depend on the full-response shape keep working.
  */
 import { NextRequest, NextResponse } from "next/server";
+import { z } from "zod";
 import {
-  chatRequestSchema,
   type PlannerDecision,
   type SourceItem,
 } from "@sparkflow/shared";
+
+/**
+ * Lenient schema that accepts both our own payload shape (with `id`) and the
+ * shape `@ai-sdk/react`'s `useChat` hook posts by default (no `id`, extra
+ * fields we ignore). Any missing `id` is filled in on the server with
+ * `crypto.randomUUID()`.
+ */
+const streamRequestSchema = z.object({
+  messages: z
+    .array(
+      z
+        .object({
+          id: z.string().optional(),
+          role: z.enum(["user", "assistant", "system", "tool", "data"]).optional(),
+          content: z.string().optional(),
+          parts: z.array(z.unknown()).optional(),
+        })
+        .passthrough(),
+    )
+    .min(1),
+  forceSearch: z.boolean().optional(),
+  conversationId: z.string().optional(),
+});
 import {
   SYSTEM_PROMPT,
   buildGroundingBlock,
@@ -37,14 +60,49 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Invalid JSON body" }, { status: 400 });
   }
 
-  const parseResult = chatRequestSchema.safeParse(body);
+  const parseResult = streamRequestSchema.safeParse(body);
   if (!parseResult.success) {
     return NextResponse.json(
       { error: "Invalid request", issues: parseResult.error.flatten() },
       { status: 400 },
     );
   }
-  const parsed = parseResult.data;
+
+  // Normalise into the internal ChatMessage shape expected downstream.
+  // `useChat` from @ai-sdk/react posts messages with {role, content, parts}
+  // and sometimes no top-level id. Fill the gaps and drop unsupported roles.
+  const parsed = {
+    ...parseResult.data,
+    messages: parseResult.data.messages
+      .filter((m) => m.role !== "data")
+      .map((m) => ({
+        id: m.id ?? crypto.randomUUID(),
+        role: (m.role ?? "user") as "user" | "assistant" | "system" | "tool",
+        content:
+          typeof m.content === "string" && m.content.length > 0
+            ? m.content
+            : // `useChat` v4 may put text inside `parts: [{type:"text", text:"..."}]`
+              (Array.isArray(m.parts)
+                ? m.parts
+                    .map((p) => {
+                      if (p && typeof p === "object" && "type" in p && (p as { type?: string }).type === "text") {
+                        return (p as { text?: string }).text ?? "";
+                      }
+                      return "";
+                    })
+                    .filter(Boolean)
+                    .join("\n")
+                : ""),
+      }))
+      .filter((m) => m.content.length > 0),
+  };
+
+  if (parsed.messages.length === 0) {
+    return NextResponse.json(
+      { error: "At least one non-empty message is required." },
+      { status: 400 },
+    );
+  }
 
   const latestUserMessage = [...parsed.messages]
     .reverse()

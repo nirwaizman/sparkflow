@@ -82,7 +82,26 @@ export async function createSupabaseServerClient(): Promise<SupabaseClient> {
 
 /**
  * Browser-side Supabase client. Use from `"use client"` components.
+ *
+ * We reference `process.env.NEXT_PUBLIC_*` **literally** (no wrapper) so Next.js
+ * inlines the values into the client bundle at build time. Using a string-arg
+ * indirection (e.g. `optionalEnv("NEXT_PUBLIC_SUPABASE_URL")`) defeats the
+ * static-analysis replacement and the values come back `undefined` in the
+ * browser.
  */
 export function createSupabaseBrowserClient(): SupabaseClient {
-  return createBrowserClient(resolveUrl(), resolveAnonKey());
+  const url =
+    process.env.NEXT_PUBLIC_SUPABASE_URL ??
+    // Fallback to non-prefixed for server-rendered first paint.
+    resolveUrl();
+  const anonKey =
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+    resolveAnonKey();
+  if (!url || !anonKey) {
+    throw new Error(
+      "Supabase browser client missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY. " +
+        "Ensure both are set in apps/web/.env.local and restart `pnpm dev`.",
+    );
+  }
+  return createBrowserClient(url, anonKey);
 }
