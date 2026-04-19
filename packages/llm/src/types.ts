@@ -1,7 +1,16 @@
 import type { ChatMessage, UsageRecord } from "@sparkflow/shared";
 import type { z } from "zod";
 
-export type LlmProviderName = "openai" | "anthropic" | "google" | "groq";
+export type LlmProviderName =
+  | "openai"
+  | "anthropic"
+  | "google"
+  | "groq"
+  | "mistral"
+  | "xai"
+  | "openrouter"
+  | "deepseek"
+  | "ollama";
 
 /**
  * Provider identifier used in logs and usage records. "mock" is a pseudo

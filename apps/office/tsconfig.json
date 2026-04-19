@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "types": ["office-js", "vite/client", "react", "react-dom"],
+    "outDir": "dist",
+    "noEmit": true
+  },
+  "include": ["src", "vite.config.ts"]
+}

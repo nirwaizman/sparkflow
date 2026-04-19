@@ -44,6 +44,33 @@ export const PRICING: Record<LlmProviderName, ProviderPricing> = {
     "llama-3.1-70b-versatile": { inputPerMillion: 0.59, outputPerMillion: 0.79 },
     "mixtral-8x7b-32768": { inputPerMillion: 0.24, outputPerMillion: 0.24 },
   },
+  mistral: {
+    "mistral-large-latest": { inputPerMillion: 2, outputPerMillion: 6 },
+    "mistral-medium-latest": { inputPerMillion: 0.4, outputPerMillion: 2 },
+    "pixtral-large-latest": { inputPerMillion: 2, outputPerMillion: 6 },
+  },
+  xai: {
+    "grok-2-latest": { inputPerMillion: 2, outputPerMillion: 10 },
+  },
+  // OpenRouter proxies many upstream models; the effective price depends on the
+  // chosen `model` string. We can't know that statically, so every entry is 0
+  // and the caller is expected to record true cost via the OpenRouter usage
+  // response when needed.
+  // TODO(WP-B2): populate per-slug pricing once we expose `openrouter/<slug>`
+  // models in the UI — mirror what api.openrouter.ai returns for each model.
+  openrouter: {
+    "openrouter/auto": { inputPerMillion: 0, outputPerMillion: 0 },
+  },
+  deepseek: {
+    "deepseek-chat": { inputPerMillion: 0.27, outputPerMillion: 1.1 },
+    "deepseek-reasoner": { inputPerMillion: 0.55, outputPerMillion: 2.19 },
+  },
+  // Local inference — zero marginal cost to the developer.
+  ollama: {
+    "llama3.1": { inputPerMillion: 0, outputPerMillion: 0 },
+    "llama3.2": { inputPerMillion: 0, outputPerMillion: 0 },
+    "qwen2.5": { inputPerMillion: 0, outputPerMillion: 0 },
+  },
 };
 
 /**
@@ -63,6 +90,11 @@ export function estimateCost(
   }
   const entry = providerTable[model];
   if (!entry) {
+    // openrouter/* and ollama/* are explicit no-cost passthroughs; don't spam
+    // the logs when an unfamiliar upstream slug is used.
+    if (provider === "openrouter" || provider === "ollama") {
+      return 0;
+    }
     console.warn(
       `[pricing] no pricing entry for ${provider}/${model}; returning 0 cost.`,
     );

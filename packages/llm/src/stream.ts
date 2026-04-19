@@ -34,11 +34,31 @@ const ENV_VAR: Record<LlmProviderName, string> = {
   anthropic: "ANTHROPIC_API_KEY",
   google: "GOOGLE_GENERATIVE_AI_API_KEY",
   groq: "GROQ_API_KEY",
+  mistral: "MISTRAL_API_KEY",
+  xai: "XAI_API_KEY",
+  openrouter: "OPENROUTER_API_KEY",
+  deepseek: "DEEPSEEK_API_KEY",
+  ollama: "OLLAMA_API_KEY",
+};
+
+/**
+ * OpenAI-compatible base URLs for providers we reach via `createOpenAI` with a
+ * custom baseURL. These providers all speak the OpenAI `/v1/chat/completions`
+ * wire format, which means the existing AI SDK OpenAI client streams them
+ * correctly without needing a dedicated `@ai-sdk/*` package.
+ */
+const OPENAI_COMPAT_BASE_URL: Partial<Record<LlmProviderName, string>> = {
+  mistral: "https://api.mistral.ai/v1",
+  xai: "https://api.x.ai/v1",
+  openrouter: "https://openrouter.ai/api/v1",
+  deepseek: "https://api.deepseek.com/v1",
+  ollama: `${(process.env.OLLAMA_BASE_URL ?? "http://localhost:11434").replace(/\/$/, "")}/v1`,
 };
 
 function modelFactory(name: LlmProviderName, modelId: string): LanguageModelV1 {
   const apiKey = optionalEnv(ENV_VAR[name]);
-  if (!apiKey) {
+  // Ollama has no API key requirement; everything else does.
+  if (!apiKey && name !== "ollama") {
     throw new MissingApiKeyError(name, ENV_VAR[name]);
   }
   switch (name) {
@@ -50,6 +70,14 @@ function modelFactory(name: LlmProviderName, modelId: string): LanguageModelV1 {
       return createGoogleGenerativeAI({ apiKey })(modelId);
     case "groq":
       return createGroq({ apiKey })(modelId);
+    case "mistral":
+    case "xai":
+    case "openrouter":
+    case "deepseek":
+    case "ollama": {
+      const baseURL = OPENAI_COMPAT_BASE_URL[name]!;
+      return createOpenAI({ apiKey: apiKey ?? "ollama", baseURL })(modelId);
+    }
   }
 }
 
@@ -67,7 +95,11 @@ export function generateStream(
 
   const causes: unknown[] = [];
   for (const name of order) {
-    const keyPresent = Boolean(optionalEnv(ENV_VAR[name]));
+    const keyPresent =
+      Boolean(optionalEnv(ENV_VAR[name])) ||
+      // Ollama is keyless; only consider it configured if the dev opted in.
+      (name === "ollama" &&
+        Boolean(optionalEnv("OLLAMA_BASE_URL") || optionalEnv("OLLAMA_API_KEY")));
     if (!keyPresent) continue;
     try {
       const model = modelFactory(name, args.model ?? defaultModel(name));

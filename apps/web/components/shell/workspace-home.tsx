@@ -5,8 +5,8 @@
  *
  *   - hero headline with the active org name,
  *   - a "super prompt" composer that routes to `/chat/new?q=...&mode=...`,
- *   - a 3x3 grid of feature tiles (Chat, Slides, Sheets, Docs, Image,
- *     Agents, Tasks, Workflows, Files),
+ *   - a 4x4 grid of feature tiles (16 tiles) with Super Agent as a wide
+ *     featured card spanning two columns at `lg+`,
  *   - a compact usage strip hydrated from `/api/auth/me`.
  *
  * The page is RTL-first (Hebrew copy) but relies on logical utilities
@@ -19,17 +19,24 @@ import {
   ArrowLeft,
   Bot,
   ChevronDown,
+  Code,
   FileText,
   FolderOpen,
+  Globe,
   Image as ImageIcon,
   ListChecks,
   Mail,
   MessageSquare,
+  Music,
+  Paintbrush,
   Paperclip,
+  Phone,
+  Plug,
   Presentation,
   Send,
   Sparkles,
   Table,
+  Video,
   Workflow,
 } from "lucide-react";
 import {
@@ -76,6 +83,8 @@ type Tile = {
   tone: string;
 };
 
+// Regular tiles. "Super Agent" is elevated and rendered separately
+// (see `FEATURED_TILE` below) as a wide card with a gradient border.
 const TILES: Tile[] = [
   {
     title: "AI Chat",
@@ -113,6 +122,34 @@ const TILES: Tile[] = [
     tone: "warning",
   },
   {
+    title: "AI Video",
+    description: "קליפים וסרטונים קצרים שנוצרים ישירות מתיאור.",
+    href: "/video",
+    icon: Video,
+    tone: "accent",
+  },
+  {
+    title: "AI Music",
+    description: "מוזיקה מקורית, ג'ינגלים וסאונדטרקים מטקסט.",
+    href: "/music",
+    icon: Music,
+    tone: "primary",
+  },
+  {
+    title: "AI Designer",
+    description: "עיצוב גרפי — פוסטים, באנרים ומותגים מלאים.",
+    href: "/design",
+    icon: Paintbrush,
+    tone: "warning",
+  },
+  {
+    title: "AI Developer",
+    description: "כתיבת קוד, ריפקטור ובניית אפליקציות שלמות.",
+    href: "/dev",
+    icon: Code,
+    tone: "success",
+  },
+  {
     title: "AI Agents",
     description: "צוותי סוכנים המבצעים משימות רב-שלביות עצמאית.",
     href: "/agents",
@@ -134,6 +171,27 @@ const TILES: Tile[] = [
     tone: "primary",
   },
   {
+    title: "Browser",
+    description: "דפדפן סוכני שמפעיל אתרים ומבצע פעולות עבורך.",
+    href: "/browser",
+    icon: Globe,
+    tone: "primary",
+  },
+  {
+    title: "Phone",
+    description: "סוכן טלפוני שמתקשר, מזמן ומשאיר הודעות.",
+    href: "/phone",
+    icon: Phone,
+    tone: "success",
+  },
+  {
+    title: "Integrations",
+    description: "חבר Gmail, Drive, Slack ומערכות נוספות.",
+    href: "/integrations",
+    icon: Plug,
+    tone: "muted",
+  },
+  {
     title: "AI Files",
     description: "ספריית קבצי הידע שלך — מאוחסנת ומותאמת ל-RAG.",
     href: "/files",
@@ -141,6 +199,13 @@ const TILES: Tile[] = [
     tone: "muted",
   },
 ];
+
+const FEATURED_TILE = {
+  title: "Super Agent",
+  tagline: "Describe anything. We'll orchestrate.",
+  href: "/super",
+  icon: Sparkles,
+};
 
 const TONE_CLASS: Record<string, string> = {
   primary: "bg-[hsl(var(--primary)/0.15)] text-[hsl(var(--primary))]",
@@ -205,7 +270,7 @@ export function WorkspaceHome({
 
   return (
     <div
-      className="relative mx-auto flex w-full max-w-5xl flex-col gap-10 px-4 py-10 sm:px-6 lg:px-8"
+      className="relative mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-10 sm:px-6 lg:px-8"
     >
       <section className="flex flex-col items-center gap-3 text-center">
         <span className="inline-flex items-center gap-1 rounded-full border border-[hsl(var(--border))] px-3 py-1 text-xs text-[hsl(var(--muted-foreground))]">
@@ -214,9 +279,9 @@ export function WorkspaceHome({
         <h1 className="text-balance text-4xl font-semibold tracking-tight sm:text-5xl">
           ברוך הבא, {greetName}
         </h1>
-        <p className="max-w-xl text-sm text-[hsl(var(--muted-foreground))] sm:text-base">
-          סביבת עבודה אחת לצ&rsquo;אט, מחקר, סוכנים ואוטומציות — כל הכלים של SparkFlow
-          במקום אחד.
+        <p className="max-w-2xl text-sm text-[hsl(var(--muted-foreground))] sm:text-base">
+          All your AI — slides, sheets, docs, images, video, music, design,
+          code, browser, phone. One workspace.
         </p>
       </section>
 
@@ -248,8 +313,56 @@ export function WorkspaceHome({
         </CardContent>
       </Card>
 
-      {/* Feature grid */}
-      <section aria-label="כלי עבודה" className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+      {/* Feature grid — 4x4 on lg+, 2-col on sm. Super Agent (wide) +
+          15 regular tiles = 16 cell slots. */}
+      <section
+        aria-label="כלי עבודה"
+        className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4"
+      >
+        {/* Featured: Super Agent — occupies 2 columns with a gradient
+            border. Uses a nested wrapper trick so the gradient lives on
+            the outer ring while the inner card keeps the app surface. */}
+        <Link
+          href={FEATURED_TILE.href}
+          aria-label={FEATURED_TILE.title}
+          className={cn(
+            "group col-span-2 rounded-xl p-px",
+            "bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--accent))]",
+            "transition-transform hover:scale-[1.01]",
+          )}
+        >
+          <div className="flex h-full flex-col justify-between rounded-[11px] bg-[hsl(var(--card))] p-5">
+            <div className="flex items-start gap-3">
+              <div
+                className={cn(
+                  "flex h-11 w-11 items-center justify-center rounded-xl",
+                  "bg-gradient-to-br from-[hsl(var(--primary))] to-[hsl(var(--accent))]",
+                  "text-[hsl(var(--primary-foreground))]",
+                )}
+              >
+                <Sparkles className="h-5 w-5" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg font-semibold">
+                    {FEATURED_TILE.title}
+                  </span>
+                  <span className="rounded-full border border-[hsl(var(--border))] px-2 py-0.5 text-[10px] uppercase tracking-wide text-[hsl(var(--muted-foreground))]">
+                    New
+                  </span>
+                </div>
+                <p className="mt-1 text-sm text-[hsl(var(--muted-foreground))]">
+                  {FEATURED_TILE.tagline}
+                </p>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center gap-1 text-sm font-medium text-[hsl(var(--primary))]">
+              פתח
+              <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5 rtl:rotate-180 rtl:group-hover:translate-x-0.5" />
+            </div>
+          </div>
+        </Link>
+
         {TILES.map((tile) => {
           const Icon = tile.icon;
           return (

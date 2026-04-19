@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  SparkFlow Office Add-in manifest.
+  Registers a single task-pane add-in across Word, Excel, and PowerPoint.
+  The same HTML entry is loaded for all three hosts; the React app detects
+  Office.context.host at runtime and renders the matching pane.
+-->
+<OfficeApp
+  xmlns="http://schemas.microsoft.com/office/appforoffice/1.1"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bt="http://schemas.microsoft.com/office/officeappbasictypes/1.0"
+  xmlns:ov="http://schemas.microsoft.com/office/taskpaneappversionoverrides"
+  xsi:type="TaskPaneApp">
+
+  <Id>8e9c5f6a-2a55-4c3d-9a4f-1f8b5a9b2d10</Id>
+  <Version>0.0.0.1</Version>
+  <ProviderName>SparkFlow</ProviderName>
+  <DefaultLocale>en-US</DefaultLocale>
+  <DisplayName DefaultValue="SparkFlow" />
+  <Description DefaultValue="SparkFlow AI assistant for Word, Excel, and PowerPoint." />
+  <IconUrl DefaultValue="https://localhost:5173/icon-32.png" />
+  <HighResolutionIconUrl DefaultValue="https://localhost:5173/icon-64.png" />
+  <SupportUrl DefaultValue="https://sparkflow.app/support" />
+
+  <Hosts>
+    <Host Name="Document" />
+    <Host Name="Workbook" />
+    <Host Name="Presentation" />
+  </Hosts>
+
+  <DefaultSettings>
+    <SourceLocation DefaultValue="https://localhost:5173/index.html" />
+  </DefaultSettings>
+
+  <Permissions>ReadWriteDocument</Permissions>
+
+  <VersionOverrides xmlns="http://schemas.microsoft.com/office/taskpaneappversionoverrides" xsi:type="VersionOverridesV1_0">
+    <Hosts>
+      <!-- Word -->
+      <Host xsi:type="Document">
+        <DesktopFormFactor>
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <OfficeTab id="TabHome">
+              <Group id="sparkflow.word.group">
+                <Label resid="sparkflow.groupLabel" />
+                <Icon>
+                  <bt:Image size="16" resid="sparkflow.icon16" />
+                  <bt:Image size="32" resid="sparkflow.icon32" />
+                  <bt:Image size="80" resid="sparkflow.icon80" />
+                </Icon>
+                <Control xsi:type="Button" id="sparkflow.word.open">
+                  <Label resid="sparkflow.openLabel" />
+                  <Supertip>
+                    <Title resid="sparkflow.openLabel" />
+                    <Description resid="sparkflow.openDesc" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="sparkflow.icon16" />
+                    <bt:Image size="32" resid="sparkflow.icon32" />
+                    <bt:Image size="80" resid="sparkflow.icon80" />
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>sparkflow.taskpane</TaskpaneId>
+                    <SourceLocation resid="sparkflow.taskpaneUrl" />
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+
+      <!-- Excel -->
+      <Host xsi:type="Workbook">
+        <DesktopFormFactor>
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <OfficeTab id="TabHome">
+              <Group id="sparkflow.excel.group">
+                <Label resid="sparkflow.groupLabel" />
+                <Icon>
+                  <bt:Image size="16" resid="sparkflow.icon16" />
+                  <bt:Image size="32" resid="sparkflow.icon32" />
+                  <bt:Image size="80" resid="sparkflow.icon80" />
+                </Icon>
+                <Control xsi:type="Button" id="sparkflow.excel.open">
+                  <Label resid="sparkflow.openLabel" />
+                  <Supertip>
+                    <Title resid="sparkflow.openLabel" />
+                    <Description resid="sparkflow.openDesc" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="sparkflow.icon16" />
+                    <bt:Image size="32" resid="sparkflow.icon32" />
+                    <bt:Image size="80" resid="sparkflow.icon80" />
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>sparkflow.taskpane</TaskpaneId>
+                    <SourceLocation resid="sparkflow.taskpaneUrl" />
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+
+      <!-- PowerPoint -->
+      <Host xsi:type="Presentation">
+        <DesktopFormFactor>
+          <ExtensionPoint xsi:type="PrimaryCommandSurface">
+            <OfficeTab id="TabHome">
+              <Group id="sparkflow.ppt.group">
+                <Label resid="sparkflow.groupLabel" />
+                <Icon>
+                  <bt:Image size="16" resid="sparkflow.icon16" />
+                  <bt:Image size="32" resid="sparkflow.icon32" />
+                  <bt:Image size="80" resid="sparkflow.icon80" />
+                </Icon>
+                <Control xsi:type="Button" id="sparkflow.ppt.open">
+                  <Label resid="sparkflow.openLabel" />
+                  <Supertip>
+                    <Title resid="sparkflow.openLabel" />
+                    <Description resid="sparkflow.openDesc" />
+                  </Supertip>
+                  <Icon>
+                    <bt:Image size="16" resid="sparkflow.icon16" />
+                    <bt:Image size="32" resid="sparkflow.icon32" />
+                    <bt:Image size="80" resid="sparkflow.icon80" />
+                  </Icon>
+                  <Action xsi:type="ShowTaskpane">
+                    <TaskpaneId>sparkflow.taskpane</TaskpaneId>
+                    <SourceLocation resid="sparkflow.taskpaneUrl" />
+                  </Action>
+                </Control>
+              </Group>
+            </OfficeTab>
+          </ExtensionPoint>
+        </DesktopFormFactor>
+      </Host>
+    </Hosts>
+
+    <Resources>
+      <bt:Images>
+        <bt:Image id="sparkflow.icon16" DefaultValue="https://localhost:5173/icon-16.png" />
+        <bt:Image id="sparkflow.icon32" DefaultValue="https://localhost:5173/icon-32.png" />
+        <bt:Image id="sparkflow.icon80" DefaultValue="https://localhost:5173/icon-80.png" />
+      </bt:Images>
+      <bt:Urls>
+        <bt:Url id="sparkflow.taskpaneUrl" DefaultValue="https://localhost:5173/index.html" />
+      </bt:Urls>
+      <bt:ShortStrings>
+        <bt:String id="sparkflow.groupLabel" DefaultValue="SparkFlow" />
+        <bt:String id="sparkflow.openLabel" DefaultValue="Open SparkFlow" />
+      </bt:ShortStrings>
+      <bt:LongStrings>
+        <bt:String id="sparkflow.openDesc" DefaultValue="Open the SparkFlow AI assistant in a task pane." />
+      </bt:LongStrings>
+    </Resources>
+  </VersionOverrides>
+</OfficeApp>

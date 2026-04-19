@@ -18,10 +18,15 @@ import {
   ProviderUnavailableError,
 } from "./errors";
 import { anthropicProvider } from "./providers/anthropic";
+import { deepseekProvider } from "./providers/deepseek";
 import { googleProvider } from "./providers/google";
 import { groqProvider } from "./providers/groq";
+import { mistralProvider } from "./providers/mistral";
 import { mockProvider } from "./providers/mock";
+import { ollamaProvider } from "./providers/ollama";
 import { openaiProvider } from "./providers/openai";
+import { openrouterProvider } from "./providers/openrouter";
+import { xaiProvider } from "./providers/xai";
 import type {
   GenerateArgs,
   GenerateResult,
@@ -34,6 +39,11 @@ const ALL_PROVIDERS: Record<LlmProviderName, LlmProvider> = {
   anthropic: anthropicProvider,
   google: googleProvider,
   groq: groqProvider,
+  mistral: mistralProvider,
+  xai: xaiProvider,
+  openrouter: openrouterProvider,
+  deepseek: deepseekProvider,
+  ollama: ollamaProvider,
 };
 
 const ENV_VAR: Record<LlmProviderName, string> = {
@@ -41,6 +51,11 @@ const ENV_VAR: Record<LlmProviderName, string> = {
   anthropic: "ANTHROPIC_API_KEY",
   google: "GOOGLE_GENERATIVE_AI_API_KEY",
   groq: "GROQ_API_KEY",
+  mistral: "MISTRAL_API_KEY",
+  xai: "XAI_API_KEY",
+  openrouter: "OPENROUTER_API_KEY",
+  deepseek: "DEEPSEEK_API_KEY",
+  ollama: "OLLAMA_API_KEY",
 };
 
 const DEFAULT_MODEL: Record<LlmProviderName, string> = {
@@ -48,14 +63,36 @@ const DEFAULT_MODEL: Record<LlmProviderName, string> = {
   anthropic: "claude-3-5-sonnet-latest",
   google: "gemini-1.5-flash",
   groq: "llama-3.3-70b-versatile",
+  mistral: "mistral-medium-latest",
+  xai: "grok-2-latest",
+  openrouter: "openrouter/auto",
+  deepseek: "deepseek-chat",
+  ollama: "llama3.1",
 };
 
-const VALID: ReadonlySet<LlmProviderName> = new Set([
+const VALID: ReadonlySet<LlmProviderName> = new Set<LlmProviderName>([
   "openai",
   "anthropic",
   "google",
   "groq",
+  "mistral",
+  "xai",
+  "openrouter",
+  "deepseek",
+  "ollama",
 ]);
+
+/**
+ * Default fallback chain used when LLM_FALLBACK_ORDER is unset.
+ * Ordered by practical availability + cost-of-failure tradeoff:
+ *  1. OpenAI / Anthropic / Google — flagship commercial APIs.
+ *  2. Groq — very fast but narrower model catalogue.
+ *  3. Mistral / xAI / DeepSeek — secondary commercial options.
+ *  4. OpenRouter — meta-provider, last resort for commercial fallback.
+ *  5. Ollama — local, used only if the dev has spun up a local server.
+ */
+const DEFAULT_FALLBACK =
+  "openai,anthropic,google,groq,mistral,xai,deepseek,openrouter,ollama";
 
 /**
  * Test hook — internal. Allows gateway.test.ts to swap provider implementations
@@ -83,7 +120,7 @@ function getProvider(name: LlmProviderName): LlmProvider {
  * Unknown entries are dropped with a console.warn; duplicates are removed.
  */
 export function fallbackOrder(): LlmProviderName[] {
-  const raw = optionalEnv("LLM_FALLBACK_ORDER") ?? "openai,anthropic,google,groq";
+  const raw = optionalEnv("LLM_FALLBACK_ORDER") ?? DEFAULT_FALLBACK;
   const seen = new Set<LlmProviderName>();
   const out: LlmProviderName[] = [];
   for (const tokenRaw of raw.split(",")) {
@@ -190,6 +227,71 @@ export async function generate(args: GenerateArgs): Promise<GenerateResult> {
     `All ${attempted} provider attempt(s) failed.`,
     causes,
   );
+}
+
+/**
+ * Task categories SparkFlow routes across. Callers pick the category that best
+ * describes the downstream workload and the gateway returns a preferred
+ * provider order, filtered to providers whose API keys are actually present.
+ */
+export type TaskKind =
+  | "fast"
+  | "balanced"
+  | "reasoning"
+  | "vision"
+  | "code"
+  | "cheap";
+
+/**
+ * Ideal (quality-first) preference per task kind. The gateway still filters
+ * down to providers with keys configured, so callers always get a usable list.
+ * Unlisted providers simply fall back to the end of the chain.
+ */
+const TASK_PREFERENCE: Record<TaskKind, LlmProviderName[]> = {
+  // Low-latency chat; Groq's LPU inference wins on TTFT.
+  fast: ["groq", "openai", "mistral", "google"],
+  // Jack-of-all-trades default — flagship commercial models first.
+  balanced: ["openai", "anthropic", "google", "mistral", "groq"],
+  // Deliberate reasoning; frontier / thinking-style models only.
+  reasoning: ["openai", "anthropic", "deepseek", "google"],
+  // Native vision support. Grok + DeepSeek are text-only so they're excluded.
+  vision: ["openai", "anthropic", "google", "mistral"],
+  // Coding — Anthropic's Sonnet is the current quality leader; DeepSeek-coder
+  // is a strong, cheap second.
+  code: ["anthropic", "openai", "deepseek", "mistral"],
+  // Cost-minimising: prefer free/local first, then the cheapest paid options.
+  cheap: ["ollama", "groq", "deepseek", "mistral", "google"],
+};
+
+/**
+ * Return a task-aware provider order. Providers without an API key configured
+ * are dropped. Any providers in the default fallback chain that aren't in the
+ * task preference list are appended so callers still get a full fallback.
+ *
+ * `ollama` is treated as "configured" whenever the local server env is set,
+ * since it doesn't require an API key.
+ */
+export function routeByTask(taskKind: TaskKind): LlmProviderName[] {
+  const preferred = TASK_PREFERENCE[taskKind];
+  const ordered: LlmProviderName[] = [];
+  const seen = new Set<LlmProviderName>();
+  const tail = fallbackOrder();
+
+  const isConfigured = (name: LlmProviderName): boolean => {
+    if (overrides[name]) return true;
+    if (name === "ollama") {
+      // Local provider; treat as available if the user opted in.
+      return Boolean(optionalEnv("OLLAMA_BASE_URL") || optionalEnv("OLLAMA_API_KEY"));
+    }
+    return hasKey(name);
+  };
+
+  for (const name of [...preferred, ...tail]) {
+    if (seen.has(name)) continue;
+    seen.add(name);
+    if (isConfigured(name)) ordered.push(name);
+  }
+  return ordered;
 }
 
 /**

@@ -24,7 +24,12 @@ export type ToolCategory =
   | "file"
   | "memory"
   | "image"
-  | "document";
+  | "document"
+  | "research"
+  | "content"
+  | "files"
+  | "integrations"
+  | "utilities";
 
 /**
  * Enforcement policy evaluated by the runtime before a tool is executed.

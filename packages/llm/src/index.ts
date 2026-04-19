@@ -9,8 +9,10 @@ export {
   selectProvider,
   defaultModel,
   fallbackOrder,
+  routeByTask,
   __setProviderForTests,
 } from "./gateway";
+export type { TaskKind } from "./gateway";
 export { generateStream } from "./stream";
 export {
   generateObject,
@@ -40,4 +42,9 @@ export { openaiProvider } from "./providers/openai";
 export { anthropicProvider } from "./providers/anthropic";
 export { googleProvider } from "./providers/google";
 export { groqProvider } from "./providers/groq";
+export { mistralProvider } from "./providers/mistral";
+export { xaiProvider } from "./providers/xai";
+export { openrouterProvider } from "./providers/openrouter";
+export { deepseekProvider } from "./providers/deepseek";
+export { ollamaProvider } from "./providers/ollama";
 export { mockProvider } from "./providers/mock";

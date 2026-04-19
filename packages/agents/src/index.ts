@@ -18,6 +18,17 @@ export { Agent } from "./agent";
 export { Coordinator } from "./coordinator";
 export type { CollabMode, CoordinatorResult } from "./coordinator";
 
+// Super Agent — top-level multi-agent orchestrator.
+export { SuperAgent, SUB_TASK_KINDS } from "./super";
+export type {
+  SubTask,
+  SubTaskKind,
+  SubTaskResult,
+  SubTaskRunner,
+  SuperEvent,
+  SuperEventType,
+} from "./super";
+
 // 11 built-in agent definitions
 export { researchAgent } from "./builtins/research";
 export { analystAgent } from "./builtins/analyst";
