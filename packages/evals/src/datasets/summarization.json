@@ -1,0 +1,162 @@
+[
+  {
+    "id": "sum-01",
+    "input": "The quick brown fox jumps over the lazy dog. It did so three times in quick succession, then trotted off into the meadow. The dog watched, uninterested.",
+    "expected": {
+      "idealSummary": "A fox jumps over a dog three times and leaves; the dog remains uninterested.",
+      "maxWords": 25
+    }
+  },
+  {
+    "id": "sum-02",
+    "input": "חברת סטארט-אפ ישראלית בשם SparkFlow גייסה השבוע 10 מיליון דולר בסבב Seed. החברה מפתחת פלטפורמת AI לעורכי דין. ההשקעה הובלה על ידי Bessemer Venture Partners.",
+    "expected": {
+      "idealSummary": "SparkFlow גייסה 10 מיליון דולר לפלטפורמת AI לעורכי דין, בהובלת Bessemer.",
+      "maxWords": 20
+    }
+  },
+  {
+    "id": "sum-03",
+    "input": "Global shipping costs fell 12% in Q1 2026 as the Red Sea shipping lanes reopened and container supply stabilised. Analysts expect a further 5% drop by mid-year.",
+    "expected": {
+      "idealSummary": "Shipping costs fell 12% in Q1 2026 with more drops expected mid-year.",
+      "maxWords": 20
+    }
+  },
+  {
+    "id": "sum-04",
+    "input": "The CEO announced a company-wide four-day work week starting May 1. Pay remains unchanged. HR will publish implementation details next Monday.",
+    "expected": {
+      "idealSummary": "Company adopts four-day work week May 1 with unchanged pay; HR details Monday.",
+      "maxWords": 20
+    }
+  },
+  {
+    "id": "sum-05",
+    "input": "פסק דין חדש של בית המשפט העליון קבע כי חיוב בכרטיס אשראי לא מורשה יש להחזיר תוך 14 יום. הבנקים יצטרכו לעדכן נהלים.",
+    "expected": {
+      "idealSummary": "עליון: חיוב לא מורשה בכרטיס אשראי חוזר תוך 14 יום; בנקים יעדכנו נהלים.",
+      "maxWords": 20
+    }
+  },
+  {
+    "id": "sum-06",
+    "input": "OpenAI released gpt-4.1 on March 14, 2026. It features a 1M context window, native multimodal input, and a 40% cost reduction over gpt-4o.",
+    "expected": {
+      "idealSummary": "OpenAI launched gpt-4.1 with 1M context, multimodal input, and 40% cheaper than gpt-4o.",
+      "maxWords": 22
+    }
+  },
+  {
+    "id": "sum-07",
+    "input": "Tel Aviv was ranked third globally for startup ecosystem density in 2026, trailing only San Francisco and New York. Top sectors: AI, fintech, cybersecurity.",
+    "expected": {
+      "idealSummary": "Tel Aviv ranked #3 startup ecosystem in 2026, strong in AI/fintech/cybersecurity.",
+      "maxWords": 20
+    }
+  },
+  {
+    "id": "sum-08",
+    "input": "The European Union's AI Act phase 2 took effect April 1, 2026. High-risk AI systems must now carry a CE mark and undergo conformity assessments.",
+    "expected": {
+      "idealSummary": "EU AI Act phase 2 (April 1, 2026): high-risk AI needs CE mark and conformity assessment.",
+      "maxWords": 22
+    }
+  },
+  {
+    "id": "sum-09",
+    "input": "A new study from Technion shows LLM hallucination rates drop by 30% when grounded with retrieval-augmented generation over domain corpora. RAG adoption is accelerating.",
+    "expected": {
+      "idealSummary": "Technion: RAG cuts LLM hallucinations 30%; adoption accelerating.",
+      "maxWords": 18
+    }
+  },
+  {
+    "id": "sum-10",
+    "input": "TechCrunch reports Stripe launched a new 'Agent Commerce' API in April 2026, letting autonomous agents transact on behalf of users with scoped spending limits and audit trails.",
+    "expected": {
+      "idealSummary": "Stripe's April 2026 Agent Commerce API lets AI agents transact with limits + audit trails.",
+      "maxWords": 22
+    }
+  },
+  {
+    "id": "sum-11",
+    "input": "The Israeli Supreme Court ruled today that employers must pay overtime for on-call hours exceeding 8 per week. Ruling applies retroactively.",
+    "expected": {
+      "idealSummary": "Israeli Supreme Court: overtime pay required for on-call >8h/week, retroactive.",
+      "maxWords": 18
+    }
+  },
+  {
+    "id": "sum-12",
+    "input": "Anthropic announced Claude Sonnet 4.5 on April 10, 2026. Benchmarks show 15% improvement on SWE-bench and 25% on GPQA. Pricing unchanged.",
+    "expected": {
+      "idealSummary": "Anthropic's Claude Sonnet 4.5 improves SWE-bench 15%, GPQA 25%, same price.",
+      "maxWords": 20
+    }
+  },
+  {
+    "id": "sum-13",
+    "input": "Apple unveiled the Vision Pro 2 on April 8, 2026. Half the weight, 4x eye-tracking resolution, and full native AI workspace integration with Claude and OpenAI.",
+    "expected": {
+      "idealSummary": "Apple Vision Pro 2 (Apr 8, 2026): half weight, 4x eye tracking, native Claude+OpenAI.",
+      "maxWords": 22
+    }
+  },
+  {
+    "id": "sum-14",
+    "input": "Supabase released pgvector 0.8 with HNSW indexing support and 3x faster approximate nearest neighbor search over IVFFLAT.",
+    "expected": {
+      "idealSummary": "pgvector 0.8: HNSW indexing, 3x faster ANN than IVFFLAT.",
+      "maxWords": 15
+    }
+  },
+  {
+    "id": "sum-15",
+    "input": "בית המשפט לענייני משפחה פסק כי מזונות ילדים יקבעו בהתאם להכנסה משותפת של שני ההורים, לא רק של אב. שינוי תקדימי.",
+    "expected": {
+      "idealSummary": "תקדים: מזונות ילדים לפי הכנסת שני ההורים, לא רק האב.",
+      "maxWords": 18
+    }
+  },
+  {
+    "id": "sum-16",
+    "input": "Vercel shipped Edge Functions v3 with 50ms cold start, global replication, and native streaming. Deploys are 40% faster.",
+    "expected": {
+      "idealSummary": "Vercel Edge Functions v3: 50ms cold starts, 40% faster deploys.",
+      "maxWords": 18
+    }
+  },
+  {
+    "id": "sum-17",
+    "input": "Meta open-sourced Llama 4 on March 1, 2026. Three sizes: 8B, 70B, 405B. Trained on 30T tokens with native tool use.",
+    "expected": {
+      "idealSummary": "Meta open-sourced Llama 4 (Mar 2026): 8B/70B/405B, native tool use, 30T tokens.",
+      "maxWords": 22
+    }
+  },
+  {
+    "id": "sum-18",
+    "input": "Figma announced AI-native Figma Make on April 3, 2026. Describe a site in natural language; Figma outputs Tailwind + React code.",
+    "expected": {
+      "idealSummary": "Figma Make (Apr 2026) turns prompts into Tailwind+React code.",
+      "maxWords": 15
+    }
+  },
+  {
+    "id": "sum-19",
+    "input": "Tesla's Q1 2026 earnings: revenue up 8%, delivery volume flat, margin compressed. FSD v13 launching public beta in Europe.",
+    "expected": {
+      "idealSummary": "Tesla Q1 2026: +8% revenue, flat deliveries, tighter margin; FSD v13 beta in Europe.",
+      "maxWords": 22
+    }
+  },
+  {
+    "id": "sum-20",
+    "input": "The Bank of Israel raised the base interest rate by 0.25% to 4.75% on April 7, 2026, citing persistent inflation in housing.",
+    "expected": {
+      "idealSummary": "Bank of Israel raised rate 0.25% to 4.75% on Apr 7 2026, due to housing inflation.",
+      "maxWords": 20
+    }
+  }
+]

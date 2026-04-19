@@ -661,6 +661,9 @@ importers:
       '@sparkflow/llm':
         specifier: workspace:*
         version: link:../llm
+      '@sparkflow/rag':
+        specifier: workspace:*
+        version: link:../rag
       '@sparkflow/shared':
         specifier: workspace:*
         version: link:../shared

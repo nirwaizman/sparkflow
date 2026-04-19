@@ -1,0 +1,130 @@
+[
+  {
+    "id": "rag-01",
+    "input": {
+      "sources": [
+        { "title": "Apollo 11 landing", "url": "https://example.com/apollo11", "snippet": "Apollo 11 landed on the moon on July 20, 1969. Neil Armstrong was the first human to step on the lunar surface." },
+        { "title": "Moon composition", "url": "https://example.com/moon", "snippet": "The Moon is largely composed of silicate rocks and dust." }
+      ],
+      "question": "When did Apollo 11 land on the moon and who was the first human on the surface?"
+    },
+    "expected": { "citedIndexes": [1] }
+  },
+  {
+    "id": "rag-02",
+    "input": {
+      "sources": [
+        { "title": "Israel population", "url": "https://example.com/il-pop", "snippet": "Israel's population reached 10.2 million in 2026." },
+        { "title": "Tel Aviv", "url": "https://example.com/tlv", "snippet": "Tel Aviv metro area hosts 4.3 million people." }
+      ],
+      "question": "What was Israel's population in 2026?"
+    },
+    "expected": { "citedIndexes": [1] }
+  },
+  {
+    "id": "rag-03",
+    "input": {
+      "sources": [
+        { "title": "LLM benchmarks", "url": "https://example.com/bench", "snippet": "GPT-4.1 scores 0.92 on SWE-bench. Claude Sonnet 4.5 scores 0.95." },
+        { "title": "Pricing", "url": "https://example.com/price", "snippet": "GPT-4.1 costs $3 per million input tokens. Claude Sonnet 4.5 costs $3." }
+      ],
+      "question": "Which LLM scores higher on SWE-bench: GPT-4.1 or Claude Sonnet 4.5?"
+    },
+    "expected": { "citedIndexes": [1] }
+  },
+  {
+    "id": "rag-04",
+    "input": {
+      "sources": [
+        { "title": "Israeli labor law", "url": "https://example.com/laborlaw", "snippet": "The maximum weekly working hours in Israel are 42 as of 2026." },
+        { "title": "Overtime", "url": "https://example.com/overtime", "snippet": "Overtime is paid at 125% for the first two hours, 150% beyond." }
+      ],
+      "question": "What is the maximum weekly working hours in Israel, and what's the overtime rate after two hours?"
+    },
+    "expected": { "citedIndexes": [1, 2] }
+  },
+  {
+    "id": "rag-05",
+    "input": {
+      "sources": [
+        { "title": "Next.js release", "url": "https://example.com/next", "snippet": "Next.js 15 was released October 2024, adding the App Router as the default." }
+      ],
+      "question": "When was Next.js 15 released and what changed by default?"
+    },
+    "expected": { "citedIndexes": [1] }
+  },
+  {
+    "id": "rag-06",
+    "input": {
+      "sources": [
+        { "title": "Supabase tiers", "url": "https://example.com/sb", "snippet": "Supabase Free allows 500 MB DB. Pro allows 8 GB DB and daily backups." },
+        { "title": "Supabase storage", "url": "https://example.com/sb-storage", "snippet": "Pro includes 100 GB of storage and 250 GB of egress." }
+      ],
+      "question": "How much DB and storage does Supabase Pro include?"
+    },
+    "expected": { "citedIndexes": [1, 2] }
+  },
+  {
+    "id": "rag-07",
+    "input": {
+      "sources": [
+        { "title": "Postgres pgvector", "url": "https://example.com/pgvector", "snippet": "pgvector supports ivfflat and hnsw index types for ANN search." }
+      ],
+      "question": "Which ANN index types does pgvector support?"
+    },
+    "expected": { "citedIndexes": [1] }
+  },
+  {
+    "id": "rag-08",
+    "input": {
+      "sources": [
+        { "title": "Stripe checkout", "url": "https://example.com/stripe", "snippet": "Stripe Checkout supports subscriptions, one-time payments, and metered billing." },
+        { "title": "Stripe taxes", "url": "https://example.com/stripe-tax", "snippet": "Stripe Tax automatically calculates tax in 50+ countries including Israel." }
+      ],
+      "question": "Does Stripe support metered billing and automatic tax calculation for Israel?"
+    },
+    "expected": { "citedIndexes": [1, 2] }
+  },
+  {
+    "id": "rag-09",
+    "input": {
+      "sources": [
+        { "title": "תנאי שימוש", "url": "https://example.com/tos-he", "snippet": "השירות זמין רק למשתמשים מעל גיל 18." }
+      ],
+      "question": "מהי גיל המינימום לשימוש בשירות?"
+    },
+    "expected": { "citedIndexes": [1] }
+  },
+  {
+    "id": "rag-10",
+    "input": {
+      "sources": [
+        { "title": "OpenAI pricing", "url": "https://example.com/openai-price", "snippet": "gpt-4o-mini costs $0.15 per million input tokens and $0.60 per million output." },
+        { "title": "OpenAI rate limits", "url": "https://example.com/openai-rate", "snippet": "Tier 1 accounts get 500 RPM and 10K TPM on gpt-4o-mini." }
+      ],
+      "question": "What's the cost and Tier 1 rate limit for gpt-4o-mini?"
+    },
+    "expected": { "citedIndexes": [1, 2] }
+  },
+  {
+    "id": "rag-11",
+    "input": {
+      "sources": [
+        { "title": "Vapi call", "url": "https://example.com/vapi", "snippet": "Vapi charges $0.10 per minute for outbound calls with AI voice." }
+      ],
+      "question": "How much does Vapi charge per minute?"
+    },
+    "expected": { "citedIndexes": [1] }
+  },
+  {
+    "id": "rag-12",
+    "input": {
+      "sources": [
+        { "title": "Tavily", "url": "https://example.com/tavily", "snippet": "Tavily Free tier: 1000 searches/month." },
+        { "title": "Tavily Pro", "url": "https://example.com/tavily-pro", "snippet": "Tavily Pro: $30/mo for 10K searches + advanced depth." }
+      ],
+      "question": "How many searches does Tavily Free include, and what does Pro cost?"
+    },
+    "expected": { "citedIndexes": [1, 2] }
+  }
+]

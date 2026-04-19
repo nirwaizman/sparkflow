@@ -1,0 +1,146 @@
+[
+  {
+    "id": "sheets-01",
+    "input": { "topic": "Top 5 world capitals with population", "rows": 5 },
+    "expected": {
+      "columnTypeHints": {
+        "City": "text",
+        "Country": "text",
+        "Population": "number"
+      }
+    }
+  },
+  {
+    "id": "sheets-02",
+    "input": { "topic": "5 products with price and availability", "rows": 5 },
+    "expected": {
+      "columnTypeHints": {
+        "Product": "text",
+        "Price": "currency",
+        "Available": "boolean"
+      }
+    }
+  },
+  {
+    "id": "sheets-03",
+    "input": { "topic": "Upcoming 5 public holidays in Israel 2026 with date", "rows": 5 },
+    "expected": {
+      "columnTypeHints": {
+        "Holiday": "text",
+        "Date": "date"
+      }
+    }
+  },
+  {
+    "id": "sheets-04",
+    "input": { "topic": "5 SaaS companies with founding year, valuation USD, and public status", "rows": 5 },
+    "expected": {
+      "columnTypeHints": {
+        "Company": "text",
+        "Founded": "number",
+        "Valuation": "currency",
+        "Public": "boolean"
+      }
+    }
+  },
+  {
+    "id": "sheets-05",
+    "input": { "topic": "10 employees with name, department, hire date, salary, manager flag", "rows": 10 },
+    "expected": {
+      "columnTypeHints": {
+        "Name": "text",
+        "Department": "text",
+        "HireDate": "date",
+        "Salary": "currency",
+        "IsManager": "boolean"
+      }
+    }
+  },
+  {
+    "id": "sheets-06",
+    "input": { "topic": "5 flights Tel Aviv to NYC: carrier, date, duration hours, price usd, nonstop", "rows": 5 },
+    "expected": {
+      "columnTypeHints": {
+        "Carrier": "text",
+        "Date": "date",
+        "DurationHours": "number",
+        "Price": "currency",
+        "Nonstop": "boolean"
+      }
+    }
+  },
+  {
+    "id": "sheets-07",
+    "input": { "topic": "10 books with title, author, year, rating 1-5", "rows": 10 },
+    "expected": {
+      "columnTypeHints": {
+        "Title": "text",
+        "Author": "text",
+        "Year": "number",
+        "Rating": "number"
+      }
+    }
+  },
+  {
+    "id": "sheets-08",
+    "input": { "topic": "5 invoices with customer, amount usd, due date, paid", "rows": 5 },
+    "expected": {
+      "columnTypeHints": {
+        "Customer": "text",
+        "Amount": "currency",
+        "DueDate": "date",
+        "Paid": "boolean"
+      }
+    }
+  },
+  {
+    "id": "sheets-09",
+    "input": { "topic": "8 Olympic medals per country with counts by type", "rows": 8 },
+    "expected": {
+      "columnTypeHints": {
+        "Country": "text",
+        "Gold": "number",
+        "Silver": "number",
+        "Bronze": "number",
+        "Total": "number"
+      }
+    }
+  },
+  {
+    "id": "sheets-10",
+    "input": { "topic": "5 crypto assets with symbol, price usd, 24h change percent", "rows": 5 },
+    "expected": {
+      "columnTypeHints": {
+        "Symbol": "text",
+        "Price": "currency",
+        "Change24h": "number"
+      }
+    }
+  },
+  {
+    "id": "sheets-11",
+    "input": { "topic": "6 Israeli startups with name, founders count, founded year, total raised usd, active", "rows": 6 },
+    "expected": {
+      "columnTypeHints": {
+        "Name": "text",
+        "Founders": "number",
+        "Founded": "number",
+        "TotalRaised": "currency",
+        "Active": "boolean"
+      }
+    }
+  },
+  {
+    "id": "sheets-12",
+    "input": { "topic": "5 restaurants with name, cuisine, rating 1-5, avg price, accepts reservations", "rows": 5 },
+    "expected": {
+      "columnTypeHints": {
+        "Name": "text",
+        "Cuisine": "text",
+        "Rating": "number",
+        "AvgPrice": "currency",
+        "Reservations": "boolean"
+      }
+    }
+  }
+]

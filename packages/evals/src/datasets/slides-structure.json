@@ -1,0 +1,52 @@
+[
+  {
+    "id": "slides-01",
+    "input": { "topic": "Quarterly business review Q1 2026", "numSlides": 6 },
+    "expected": { "minSlides": 5, "requiredLayouts": ["title", "content", "closing"] }
+  },
+  {
+    "id": "slides-02",
+    "input": { "topic": "Investor pitch for an AI legal workspace", "numSlides": 10 },
+    "expected": { "minSlides": 8, "requiredLayouts": ["title", "content", "two-column", "closing"] }
+  },
+  {
+    "id": "slides-03",
+    "input": { "topic": "Product launch: SparkFlow 1.0", "numSlides": 5 },
+    "expected": { "minSlides": 4, "requiredLayouts": ["title", "content", "closing"] }
+  },
+  {
+    "id": "slides-04",
+    "input": { "topic": "Annual employee town hall 2026", "numSlides": 8 },
+    "expected": { "minSlides": 6, "requiredLayouts": ["title", "content", "quote", "closing"] }
+  },
+  {
+    "id": "slides-05",
+    "input": { "topic": "Technical architecture overview of a RAG pipeline", "numSlides": 7 },
+    "expected": { "minSlides": 5, "requiredLayouts": ["title", "content", "two-column", "closing"] }
+  },
+  {
+    "id": "slides-06",
+    "input": { "topic": "Sales training deck for enterprise reps", "numSlides": 6 },
+    "expected": { "minSlides": 5, "requiredLayouts": ["title", "content", "closing"] }
+  },
+  {
+    "id": "slides-07",
+    "input": { "topic": "Company all-hands celebrating 100k MAU milestone", "numSlides": 5 },
+    "expected": { "minSlides": 4, "requiredLayouts": ["title", "content", "quote", "closing"] }
+  },
+  {
+    "id": "slides-08",
+    "input": { "topic": "Security review: Q1 2026 threats and mitigations", "numSlides": 7 },
+    "expected": { "minSlides": 5, "requiredLayouts": ["title", "content", "closing"] }
+  },
+  {
+    "id": "slides-09",
+    "input": { "topic": "Fundraising AMA for early employees", "numSlides": 6 },
+    "expected": { "minSlides": 4, "requiredLayouts": ["title", "content", "two-column", "closing"] }
+  },
+  {
+    "id": "slides-10",
+    "input": { "topic": "Board update on customer success metrics", "numSlides": 8 },
+    "expected": { "minSlides": 6, "requiredLayouts": ["title", "content", "closing"] }
+  }
+]

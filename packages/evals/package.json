@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@sparkflow/llm": "workspace:*",
+    "@sparkflow/rag": "workspace:*",
     "@sparkflow/shared": "workspace:*",
     "promptfoo": "^0.100",
     "zod": "3.25.28"
