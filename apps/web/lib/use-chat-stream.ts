@@ -9,7 +9,7 @@
  * annotations, drop the header-based channel in favour of `data` so the
  * panel can populate while the answer is still streaming.
  */
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import type { PlannerMode, SourceItem } from "@sparkflow/shared";
 
@@ -40,9 +40,19 @@ export function useChatStream(options: Options = {}) {
   const [planner, setPlanner] = useState<PlannerMeta>(DEFAULT_PLANNER);
   const [sources, setSources] = useState<SourceItem[]>([]);
 
+  // Pin the useChat `id` once per hook mount. `useChat` keys its SWR cache by
+  // this id; if it flips from `undefined` → a real conversation id mid-stream
+  // (which happens when a brand-new chat assigns its id after the first send),
+  // SWR switches cache buckets and the in-flight assistant tokens keep writing
+  // to the old bucket — so the UI shows the user turn but never the reply.
+  // The caller's `conversationId` is still honoured for cache partitioning at
+  // first mount; subsequent changes are ignored to keep the stream attached.
+  const stableIdRef = useRef<string | undefined>(options.conversationId);
+  const stableId = stableIdRef.current;
+
   const chat = useChat({
     api: "/api/chat/stream",
-    id: options.conversationId,
+    id: stableId,
     initialMessages: options.initialMessages,
     onResponse: (response: Response) => {
       const mode = (response.headers.get("x-planner-mode") ??

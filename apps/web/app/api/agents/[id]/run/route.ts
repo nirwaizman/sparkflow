@@ -70,6 +70,9 @@ const runSchema = z.object({
     .optional(),
 });
 
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 async function resolveDefinition(
   id: string,
   organizationId: string,
@@ -77,6 +80,15 @@ async function resolveDefinition(
   if (id.startsWith("builtin:")) {
     const key = id.slice("builtin:".length);
     return BUILT_INS[key] ?? null;
+  }
+  // Allow bare built-in names (e.g. `research`) for convenience.
+  if (Object.prototype.hasOwnProperty.call(BUILT_INS, id)) {
+    return BUILT_INS[id] ?? null;
+  }
+  // Custom agents are stored by UUID; short-circuit non-UUIDs so a
+  // typo doesn't cascade into a Postgres "invalid uuid" 500.
+  if (!UUID_RE.test(id)) {
+    return null;
   }
   const db = getDb();
   const [row] = await db

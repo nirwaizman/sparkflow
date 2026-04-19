@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import type { SourceItem } from "@sparkflow/shared";
 import { useChatStream } from "@/lib/use-chat-stream";
@@ -95,6 +95,33 @@ export function ChatShell({ conversationId }: Props) {
   });
 
   const streaming = status === "streaming";
+
+  // Persist the assistant's completed turn back to the Zustand store.
+  // We detect the falling edge of streaming (true → false) and, if the last
+  // visible message is an assistant message that's not already in the store,
+  // push it so a page reload preserves the reply.
+  const lastPersistedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (streaming) return;
+    if (!activeId) return;
+    const last = messages[messages.length - 1];
+    if (!last || last.role !== "assistant") return;
+    if (!last.content || last.content.length === 0) return;
+    if (lastPersistedRef.current === last.id) return;
+    lastPersistedRef.current = last.id;
+    const already = activeConversation?.messages.some(
+      (m) => m.role === "assistant" && m.content === last.content,
+    );
+    if (already) return;
+    addMessage(activeId, {
+      id: crypto.randomUUID(),
+      role: "assistant",
+      content: last.content,
+      mode: planner.mode,
+      plannerReason: planner.reason,
+      sentAt: new Date().toISOString(),
+    });
+  }, [streaming, messages, activeId, activeConversation, addMessage, planner]);
 
   // Ensure a conversation exists before persisting the first message.
   function ensureConversation(firstPromptTitle: string): string {

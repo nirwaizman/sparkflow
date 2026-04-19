@@ -72,6 +72,7 @@ export type TaskEvent =
   | { type: "step_start"; payload: { step: TaskStep } }
   | { type: "step_end"; payload: { step: TaskStep } }
   | { type: "waiting"; payload: { reason: string; stepIndex: number } }
+  | { type: "cancelled"; payload: { stepIndex: number } }
   | { type: "finish"; payload: { output: unknown } }
   | { type: "error"; payload: { message: string; stepIndex?: number } };
 

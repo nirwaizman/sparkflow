@@ -1,5 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { chatRequestSchema } from "@sparkflow/shared";
+import { z } from "zod";
+
+// Lenient schema that accepts both our own payload shape (with `id`) and
+// the shape @ai-sdk/react's useChat hook posts (no id, extra fields we
+// ignore). We fill any missing id with crypto.randomUUID() and map
+// message.parts[].text → content when no top-level content is provided.
+const chatRequestSchema = z.object({
+  messages: z
+    .array(
+      z
+        .object({
+          id: z.string().optional(),
+          role: z.enum(["user", "assistant", "system", "tool", "data"]).optional(),
+          content: z.string().optional(),
+          parts: z.array(z.unknown()).optional(),
+        })
+        .passthrough(),
+    )
+    .min(1),
+  forceSearch: z.boolean().optional(),
+  conversationId: z.string().optional(),
+});
 import { generate, defaultModel, heuristicRoute, SYSTEM_PROMPT } from "@sparkflow/llm";
 import {
   withLlmTrace,
@@ -33,7 +54,33 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const parsed = chatRequestSchema.parse(body);
+    const raw = chatRequestSchema.parse(body);
+
+    // Normalise into internal ChatMessage shape.
+    const parsed = {
+      ...raw,
+      messages: raw.messages
+        .filter((m) => m.role !== "data")
+        .map((m) => ({
+          id: m.id ?? crypto.randomUUID(),
+          role: (m.role ?? "user") as "user" | "assistant" | "system" | "tool",
+          content:
+            typeof m.content === "string" && m.content.length > 0
+              ? m.content
+              : Array.isArray(m.parts)
+                ? m.parts
+                    .map((p) => {
+                      if (p && typeof p === "object" && "type" in p && (p as { type?: string }).type === "text") {
+                        return (p as { text?: string }).text ?? "";
+                      }
+                      return "";
+                    })
+                    .filter(Boolean)
+                    .join("\n")
+                : "",
+        }))
+        .filter((m) => m.content.length > 0),
+    };
 
     const latestUserMessage = [...parsed.messages].reverse().find((m) => m.role === "user");
     if (!latestUserMessage) {

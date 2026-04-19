@@ -193,18 +193,53 @@ function parseBlocks(md: string): Block[] {
   return blocks;
 }
 
+// Register Noto Sans Hebrew once per server process. @react-pdf/renderer's
+// default Helvetica PDF font only has a Latin glyph set, so Hebrew
+// markdown exported to PDF shows up as boxes / Latin-fallback garbage.
+// Noto Sans Hebrew covers Hebrew + Latin, so we use it as the default
+// `fontFamily` whenever the document contains any Hebrew code points.
+const NOTO_HEB_REGULAR =
+  "https://fonts.gstatic.com/s/notosanshebrew/v50/or3HQ7v33eiDljA1IufXTtVf7V6RvEEdhQlk0LlGxCyaeNKYZC0sqk3xXGiXd4qtog.ttf";
+const NOTO_HEB_BOLD =
+  "https://fonts.gstatic.com/s/notosanshebrew/v50/or3HQ7v33eiDljA1IufXTtVf7V6RvEEdhQlk0LlGxCyaeNKYZC0sqk3xXGiXkI2tog.ttf";
+
+let hebrewFontRegistered = false;
+async function ensureHebrewFont(): Promise<void> {
+  if (hebrewFontRegistered) return;
+  const { Font } = await import("@react-pdf/renderer");
+  Font.register({
+    family: "NotoSansHebrew",
+    fonts: [
+      { src: NOTO_HEB_REGULAR, fontWeight: 400 },
+      { src: NOTO_HEB_BOLD, fontWeight: 700 },
+    ],
+  });
+  hebrewFontRegistered = true;
+}
+
+function containsHebrew(s: string): boolean {
+  return /[\u0590-\u05FF]/.test(s);
+}
+
 async function renderPdf(markdown: string, title: string): Promise<Buffer> {
   // Dynamic imports to keep the module graph small and avoid pulling
   // react-pdf into the Edge bundler.
   const [{ Document, Page, Text, View, StyleSheet, pdf }, React] =
     await Promise.all([import("@react-pdf/renderer"), import("react")]);
 
+  const needsHebrew = containsHebrew(markdown) || containsHebrew(title);
+  if (needsHebrew) {
+    await ensureHebrewFont();
+  }
+  const bodyFont = needsHebrew ? "NotoSansHebrew" : "Helvetica";
+  const codeFont = needsHebrew ? "NotoSansHebrew" : "Courier";
+
   const styles = StyleSheet.create({
     page: {
       paddingTop: 48,
       paddingBottom: 48,
       paddingHorizontal: 56,
-      fontFamily: "Helvetica",
+      fontFamily: bodyFont,
       fontSize: 11,
       lineHeight: 1.5,
       color: "#111",
@@ -219,7 +254,7 @@ async function renderPdf(markdown: string, title: string): Promise<Buffer> {
     listBullet: { width: 14 },
     listText: { flex: 1 },
     code: {
-      fontFamily: "Courier",
+      fontFamily: codeFont,
       fontSize: 10,
       backgroundColor: "#f4f4f5",
       padding: 8,

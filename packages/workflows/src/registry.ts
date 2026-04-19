@@ -64,6 +64,24 @@ export async function getWorkflow(
   return row ? rowToDefinition(row) : null;
 }
 
+/**
+ * Org-scoped lookup. Use this from any request handler that already
+ * has a session, so cross-tenant UUID probing can't surface another
+ * org's workflow.
+ */
+export async function getWorkflowForOrg(
+  id: string,
+  organizationId: string,
+): Promise<WorkflowDefinition | null> {
+  const db = getDb();
+  const [row] = await db
+    .select()
+    .from(workflows)
+    .where(and(eq(workflows.id, id), eq(workflows.organizationId, organizationId)))
+    .limit(1);
+  return row ? rowToDefinition(row) : null;
+}
+
 export type CreateWorkflowInput = {
   organizationId: string;
   name: string;

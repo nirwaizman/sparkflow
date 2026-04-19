@@ -7,7 +7,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { getSession } from "@sparkflow/auth";
-import { getWorkflow, runWorkflow, type TaskEvent } from "@sparkflow/workflows";
+import {
+  getWorkflowForOrg,
+  runWorkflow,
+  type TaskEvent,
+} from "@sparkflow/workflows";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,7 +30,12 @@ export async function POST(
   }
   const { id } = await context.params;
 
-  const def = await getWorkflow(id);
+  // Cross-tenant guard: workflow rows are org-scoped, so the lookup
+  // must filter by the caller's organizationId. Without this, any
+  // authenticated user could run another org's workflow (and spend
+  // their LLM/tool budget) by guessing a UUID. Return 404 rather than
+  // 403 to avoid confirming existence.
+  const def = await getWorkflowForOrg(id, session.organizationId);
   if (!def) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }

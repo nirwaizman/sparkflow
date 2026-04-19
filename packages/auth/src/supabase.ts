@@ -88,15 +88,24 @@ export async function createSupabaseServerClient(): Promise<SupabaseClient> {
  * indirection (e.g. `optionalEnv("NEXT_PUBLIC_SUPABASE_URL")`) defeats the
  * static-analysis replacement and the values come back `undefined` in the
  * browser.
+ *
+ * When the literal replacement succeeded at build-time (the common case) we
+ * short-circuit before touching `resolveUrl()`. We only fall back to the
+ * server-side helpers when actually running on the server (SSR first paint
+ * of a client component) — detected by the absence of `window`. This way a
+ * browser bundle that somehow lost the inlined value fails with an honest
+ * "NEXT_PUBLIC_SUPABASE_URL" message instead of the misleading
+ * "SUPABASE_URL" error that `assertEnv` emits.
  */
 export function createSupabaseBrowserClient(): SupabaseClient {
-  const url =
-    process.env.NEXT_PUBLIC_SUPABASE_URL ??
-    // Fallback to non-prefixed for server-rendered first paint.
-    resolveUrl();
-  const anonKey =
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
-    resolveAnonKey();
+  const inlineUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const inlineAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  const isBrowser = typeof window !== "undefined";
+
+  const url = inlineUrl ?? (isBrowser ? undefined : resolveUrl());
+  const anonKey = inlineAnonKey ?? (isBrowser ? undefined : resolveAnonKey());
+
   if (!url || !anonKey) {
     throw new Error(
       "Supabase browser client missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY. " +

@@ -16,6 +16,7 @@ export { runWorkflow, type WorkflowRunContext } from "./runtime";
 export {
   listWorkflows,
   getWorkflow,
+  getWorkflowForOrg,
   createWorkflow,
   updateWorkflow,
   activateWorkflow,

@@ -108,8 +108,8 @@ export class TaskExecutor {
     for (let i = 0; i < plan.steps.length; i++) {
       if (await this.isCancelled(task.id)) {
         yield {
-          type: "error",
-          payload: { message: "cancelled", stepIndex: i },
+          type: "cancelled",
+          payload: { stepIndex: i },
         };
         return;
       }
@@ -189,8 +189,8 @@ export class TaskExecutor {
         }
         if (err instanceof TaskCancelledError) {
           yield {
-            type: "error",
-            payload: { message: "cancelled", stepIndex: i },
+            type: "cancelled",
+            payload: { stepIndex: i },
           };
           return;
         }

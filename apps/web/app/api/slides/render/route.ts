@@ -57,7 +57,11 @@ function renderBulletsHtml(bullets: string[]): string {
   return `<ul>\n${items}\n</ul>`;
 }
 
-function renderSlide(slide: SlideDeck["slides"][number]): string {
+function renderSlide(
+  slide: SlideDeck["slides"][number],
+  deckSubtitle?: string,
+  isFirst?: boolean,
+): string {
   const title = escapeHtml(slide.title);
   const bullets = renderBulletsHtml(slide.bullets);
   const notes = slide.speakerNotes
@@ -65,21 +69,29 @@ function renderSlide(slide: SlideDeck["slides"][number]): string {
     : "";
 
   switch (slide.layout) {
-    case "title":
-      return `<section class="layout-title">
-  <h1>${title}</h1>
-  ${bullets ? `<div class="subtitle">${bullets}</div>` : ""}
+    case "title": {
+      // If this is the first slide and the deck has a subtitle, surface the
+      // subtitle here rather than emitting a separate synthetic title section.
+      const subtitleHtml =
+        isFirst && deckSubtitle
+          ? `<p class="deck-subtitle" dir="auto">${escapeHtml(deckSubtitle)}</p>`
+          : "";
+      return `<section class="layout-title" dir="auto">
+  <h1 dir="auto">${title}</h1>
+  ${subtitleHtml}
+  ${bullets ? `<div class="subtitle" dir="auto">${bullets}</div>` : ""}
   ${notes}
 </section>`;
+    }
     case "two-column": {
       const midpoint = Math.ceil(slide.bullets.length / 2);
       const left = renderBulletsHtml(slide.bullets.slice(0, midpoint));
       const right = renderBulletsHtml(slide.bullets.slice(midpoint));
-      return `<section class="layout-two-column">
-  <h2>${title}</h2>
+      return `<section class="layout-two-column" dir="auto">
+  <h2 dir="auto">${title}</h2>
   <div class="two-col">
-    <div class="col">${left}</div>
-    <div class="col">${right}</div>
+    <div class="col" dir="auto">${left}</div>
+    <div class="col" dir="auto">${right}</div>
   </div>
   ${notes}
 </section>`;
@@ -87,10 +99,10 @@ function renderSlide(slide: SlideDeck["slides"][number]): string {
     case "quote": {
       const quote = slide.bullets[0] ? escapeHtml(slide.bullets[0]) : "";
       const attribution = slide.bullets[1]
-        ? `<footer>— ${escapeHtml(slide.bullets[1])}</footer>`
+        ? `<footer dir="auto">— ${escapeHtml(slide.bullets[1])}</footer>`
         : "";
-      return `<section class="layout-quote">
-  <blockquote>
+      return `<section class="layout-quote" dir="auto">
+  <blockquote dir="auto">
     <p>${quote}</p>
     ${attribution}
   </blockquote>
@@ -98,15 +110,15 @@ function renderSlide(slide: SlideDeck["slides"][number]): string {
 </section>`;
     }
     case "closing":
-      return `<section class="layout-closing">
-  <h2>${title}</h2>
+      return `<section class="layout-closing" dir="auto">
+  <h2 dir="auto">${title}</h2>
   ${bullets}
   ${notes}
 </section>`;
     case "content":
     default:
-      return `<section class="layout-content">
-  <h2>${title}</h2>
+      return `<section class="layout-content" dir="auto">
+  <h2 dir="auto">${title}</h2>
   ${bullets}
   ${notes}
 </section>`;
@@ -114,10 +126,12 @@ function renderSlide(slide: SlideDeck["slides"][number]): string {
 }
 
 function renderHtml(deck: SlideDeck, theme: Theme): string {
-  const subtitleHtml = deck.subtitle
-    ? `<p class="deck-subtitle">${escapeHtml(deck.subtitle)}</p>`
-    : "";
-  const sections = deck.slides.map(renderSlide).join("\n");
+  // The subtitle is now surfaced inside the model's own `layout: "title"`
+  // slide (see renderSlide). This avoids emitting a duplicate opening
+  // section when the model already produced a title slide.
+  const sections = deck.slides
+    .map((s, i) => renderSlide(s, deck.subtitle, i === 0))
+    .join("\n");
   const themeHref = revealThemeHref(theme);
   const accent =
     theme === "brand"
@@ -127,7 +141,7 @@ function renderHtml(deck: SlideDeck, theme: Theme): string {
         : "#60a5fa";
 
   return `<!doctype html>
-<html lang="en" dir="ltr">
+<html dir="auto">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=1024, initial-scale=1" />
@@ -151,7 +165,6 @@ function renderHtml(deck: SlideDeck, theme: Theme): string {
 <body>
 <div class="reveal">
   <div class="slides">
-    ${subtitleHtml ? `<section><h1>${escapeHtml(deck.title)}</h1>${subtitleHtml}</section>` : ""}
     ${sections}
   </div>
 </div>

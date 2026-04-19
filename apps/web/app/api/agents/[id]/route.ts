@@ -62,8 +62,11 @@ const patchSchema = z.object({
 });
 
 function isBuiltInId(id: string): string | null {
-  if (!id.startsWith("builtin:")) return null;
-  return id.slice("builtin:".length);
+  if (id.startsWith("builtin:")) return id.slice("builtin:".length);
+  // Allow resolution by bare name (e.g. `research`) as well — the
+  // marketplace and some deep-links hand us the short id.
+  if (Object.prototype.hasOwnProperty.call(BUILT_INS, id)) return id;
+  return null;
 }
 
 export async function GET(
@@ -82,7 +85,7 @@ export async function GET(
       }
       return NextResponse.json({
         agent: {
-          id,
+          id: `builtin:${builtinKey}`,
           name: def.name,
           role: def.role,
           description: def.objective,
@@ -97,6 +100,10 @@ export async function GET(
       });
     }
 
+    const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!UUID_RE.test(id)) {
+      return NextResponse.json({ error: "not_found" }, { status: 404 });
+    }
     const db = getDb();
     const [row] = await db
       .select()

@@ -41,6 +41,44 @@ type Props = {
   onModelChange: (model: string) => void;
 };
 
+/**
+ * Reads the one-shot prefill written by /(app)/chat/[id]/prefill-handler.tsx
+ * when the home super-composer deep-links with `?q=...&mode=...`. Populates
+ * the input, optionally overrides the mode, and clears the key so it only
+ * fires once.
+ */
+function usePrefill(
+  onChange: (v: string) => void,
+  onModeChange: (m: ComposerMode) => void,
+) {
+  const consumed = useRef(false);
+  useEffect(() => {
+    if (consumed.current) return;
+    if (typeof window === "undefined") return;
+    try {
+      const raw = window.localStorage.getItem("sparkflow-prefill");
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { q?: string; mode?: string; ts?: number };
+      // Treat as stale after 60s to avoid old prefills replaying on a hard refresh.
+      if (parsed.ts && Date.now() - parsed.ts > 60_000) {
+        window.localStorage.removeItem("sparkflow-prefill");
+        consumed.current = true;
+        return;
+      }
+      if (typeof parsed.q === "string" && parsed.q.length > 0) {
+        onChange(parsed.q);
+      }
+      if (parsed.mode === "chat" || parsed.mode === "search" || parsed.mode === "research") {
+        onModeChange(parsed.mode);
+      }
+      window.localStorage.removeItem("sparkflow-prefill");
+      consumed.current = true;
+    } catch {
+      /* ignore JSON / storage errors */
+    }
+  }, [onChange, onModeChange]);
+}
+
 export function Composer({
   value,
   onChange,
@@ -54,6 +92,9 @@ export function Composer({
 }: Props) {
   const ref = useRef<HTMLTextAreaElement | null>(null);
   const [focused, setFocused] = useState(false);
+
+  // Hydrate from the `?q=...&mode=...` prefill bridge.
+  usePrefill(onChange, onModeChange);
 
   // Auto-grow the textarea up to a sane cap.
   useEffect(() => {

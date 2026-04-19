@@ -59,20 +59,29 @@ export function createOpenAIEmbedder(
 }
 
 /**
- * Deterministic low-dimensional embedder for tests. Maps each input to an
- * 8-dim vector based on a simple hash of its characters. Not semantically
- * meaningful — just stable across runs.
+ * Deterministic embedder for tests and local dev when OPENAI_API_KEY is
+ * unset. Defaults to 1536 dimensions so it is schema-compatible with
+ * Postgres `vector(1536)` columns (matching `text-embedding-3-small`).
+ * Override via `mockEmbedderOptions.dim` for unit tests that prefer a
+ * smaller footprint.
  */
-export const mockEmbedder: EmbedFn = async (texts) => {
-  const DIM = 8;
-  return texts.map((text) => {
-    const vec = new Array<number>(DIM).fill(0);
-    for (let i = 0; i < text.length; i++) {
-      const code = text.charCodeAt(i);
-      const slot = code % DIM;
-      vec[slot] = (vec[slot] ?? 0) + (code % 17) / 17;
-    }
-    const norm = Math.sqrt(vec.reduce((a, b) => a + b * b, 0)) || 1;
-    return vec.map((v) => v / norm);
-  });
-};
+export type MockEmbedderOptions = { dim?: number };
+
+export function createMockEmbedder(options: MockEmbedderOptions = {}): EmbedFn {
+  const DIM = options.dim ?? 1536;
+  return async (texts) => {
+    return texts.map((text) => {
+      const vec = new Array<number>(DIM).fill(0);
+      for (let i = 0; i < text.length; i++) {
+        const code = text.charCodeAt(i);
+        const slot = code % DIM;
+        vec[slot] = (vec[slot] ?? 0) + (code % 17) / 17;
+      }
+      const norm = Math.sqrt(vec.reduce((a, b) => a + b * b, 0)) || 1;
+      return vec.map((v) => v / norm);
+    });
+  };
+}
+
+// Default 1536-dim mock, DB-compatible without an API key.
+export const mockEmbedder: EmbedFn = createMockEmbedder();
