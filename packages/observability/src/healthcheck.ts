@@ -89,22 +89,18 @@ async function checkDatabase(timeoutMs: number): Promise<HealthComponent> {
   return withTimeout(
     "database",
     async () => {
-      // Resolve @sparkflow/db dynamically so this package does not grow a
-      // hard dependency on the DB client. If the workspace package is not
-      // available (pruned builds, edge bundles) we fall back to a "skipped"
-      // result handled by the caller.
-      const req = eval("require") as (id: string) => unknown;
-      const mod = req("@sparkflow/db") as {
-        getDb?: () => { execute: (q: unknown) => Promise<unknown> };
-      };
-      if (!mod.getDb) throw new Error("@sparkflow/db.getDb unavailable");
-      const db = mod.getDb();
-      // drizzle-orm's `sql` tag is pulled through the db package's
-      // re-exports. Fall back to raw string if unavailable.
-      const sqlTag =
-        (req("drizzle-orm") as { sql?: (s: TemplateStringsArray) => unknown }).sql;
-      const query = sqlTag ? sqlTag`select 1` : "select 1";
-      await db.execute(query);
+      // Healthcheck via Supabase REST API — avoids pulling postgres/net/tls
+      // into the webpack bundle. Works in Node, Edge, and serverless runtimes.
+      const supabaseUrl = process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+      if (!supabaseUrl || !serviceKey) throw new Error("SUPABASE_URL or SERVICE_ROLE_KEY missing");
+      const res = await fetch(`${supabaseUrl}/rest/v1/users?select=id&limit=1`, {
+        headers: {
+          apikey: serviceKey,
+          Authorization: `Bearer ${serviceKey}`,
+        },
+      });
+      if (!res.ok) throw new Error(`Supabase REST ${res.status}`);
     },
     timeoutMs,
   ).catch((err) => ({
