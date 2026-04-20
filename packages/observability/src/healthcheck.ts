@@ -157,22 +157,25 @@ async function checkOpenAi(timeoutMs: number): Promise<HealthComponent> {
   return withTimeout(
     "openai",
     async (signal) => {
-      // HEAD on /v1/models is a cheap authenticated probe that does not
-      // count against chat/completion quotas.
+      // GET /v1/models — cheapest authenticated probe; doesn't touch quotas.
+      // HEAD is not reliably supported on OpenAI endpoints.
       const res = await fetch("https://api.openai.com/v1/models", {
-        method: "HEAD",
+        method: "GET",
         headers: { authorization: `Bearer ${key}` },
         signal,
       });
-      // OpenAI returns 405 for HEAD on some endpoints; treat any 2xx/3xx
-      // as reachable, and 401 as a credential (not availability) issue
-      // which we surface as "degraded" rather than "down".
-      if (res.status === 401) {
-        throw new Error("openai credentials rejected");
+      // 2xx/3xx = reachable + authorized.
+      // 401/403 = credential issue (service IS up; flag but don't panic).
+      // 429 = rate limited (service up).
+      // 5xx = service problem.
+      if (res.status === 401 || res.status === 403) {
+        throw new Error(`openai credentials rejected (${res.status})`);
       }
       if (res.status >= 500) {
         throw new Error(`openai status ${res.status}`);
       }
+      // Drain the body so the connection releases cleanly.
+      await res.body?.cancel().catch(() => undefined);
     },
     timeoutMs,
   );
