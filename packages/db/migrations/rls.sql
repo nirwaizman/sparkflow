@@ -332,3 +332,236 @@ drop policy if exists "shared_links_tenant_modify" on shared_links;
 create policy "shared_links_tenant_modify" on shared_links
   for all using (organization_id = (auth.jwt() ->> 'org_id')::uuid)
          with check (organization_id = (auth.jwt() ->> 'org_id')::uuid);
+
+-- =============================================================
+-- WP-A3 wave additions — 16 tables that were missing RLS.
+-- =============================================================
+
+-- deletion_requests — organization_id is nullable (user-initiated).
+alter table deletion_requests enable row level security;
+drop policy if exists "deletion_requests_tenant_select" on deletion_requests;
+create policy "deletion_requests_tenant_select" on deletion_requests
+  for select using (
+    user_id = auth.uid()
+    or organization_id = (auth.jwt() ->> 'org_id')::uuid
+  );
+drop policy if exists "deletion_requests_tenant_modify" on deletion_requests;
+create policy "deletion_requests_tenant_modify" on deletion_requests
+  for all using (user_id = auth.uid())
+         with check (user_id = auth.uid());
+
+-- scim_tokens
+alter table scim_tokens enable row level security;
+drop policy if exists "scim_tokens_tenant_select" on scim_tokens;
+create policy "scim_tokens_tenant_select" on scim_tokens
+  for select using (organization_id = (auth.jwt() ->> 'org_id')::uuid);
+drop policy if exists "scim_tokens_tenant_modify" on scim_tokens;
+create policy "scim_tokens_tenant_modify" on scim_tokens
+  for all using (organization_id = (auth.jwt() ->> 'org_id')::uuid)
+         with check (organization_id = (auth.jwt() ->> 'org_id')::uuid);
+
+-- scim_groups
+alter table scim_groups enable row level security;
+drop policy if exists "scim_groups_tenant_select" on scim_groups;
+create policy "scim_groups_tenant_select" on scim_groups
+  for select using (organization_id = (auth.jwt() ->> 'org_id')::uuid);
+drop policy if exists "scim_groups_tenant_modify" on scim_groups;
+create policy "scim_groups_tenant_modify" on scim_groups
+  for all using (organization_id = (auth.jwt() ->> 'org_id')::uuid)
+         with check (organization_id = (auth.jwt() ->> 'org_id')::uuid);
+
+-- scim_group_members — inherits via scim_groups.
+alter table scim_group_members enable row level security;
+drop policy if exists "scim_group_members_tenant_select" on scim_group_members;
+create policy "scim_group_members_tenant_select" on scim_group_members
+  for select using (
+    exists (
+      select 1 from scim_groups g
+      where g.id = scim_group_members.group_id
+        and g.organization_id = (auth.jwt() ->> 'org_id')::uuid
+    )
+  );
+drop policy if exists "scim_group_members_tenant_modify" on scim_group_members;
+create policy "scim_group_members_tenant_modify" on scim_group_members
+  for all using (
+    exists (
+      select 1 from scim_groups g
+      where g.id = scim_group_members.group_id
+        and g.organization_id = (auth.jwt() ->> 'org_id')::uuid
+    )
+  )
+  with check (
+    exists (
+      select 1 from scim_groups g
+      where g.id = scim_group_members.group_id
+        and g.organization_id = (auth.jwt() ->> 'org_id')::uuid
+    )
+  );
+
+-- org_ip_allowlist
+alter table org_ip_allowlist enable row level security;
+drop policy if exists "org_ip_allowlist_tenant_select" on org_ip_allowlist;
+create policy "org_ip_allowlist_tenant_select" on org_ip_allowlist
+  for select using (organization_id = (auth.jwt() ->> 'org_id')::uuid);
+drop policy if exists "org_ip_allowlist_tenant_modify" on org_ip_allowlist;
+create policy "org_ip_allowlist_tenant_modify" on org_ip_allowlist
+  for all using (organization_id = (auth.jwt() ->> 'org_id')::uuid)
+         with check (organization_id = (auth.jwt() ->> 'org_id')::uuid);
+
+-- integrations
+alter table integrations enable row level security;
+drop policy if exists "integrations_tenant_select" on integrations;
+create policy "integrations_tenant_select" on integrations
+  for select using (organization_id = (auth.jwt() ->> 'org_id')::uuid);
+drop policy if exists "integrations_tenant_modify" on integrations;
+create policy "integrations_tenant_modify" on integrations
+  for all using (organization_id = (auth.jwt() ->> 'org_id')::uuid)
+         with check (organization_id = (auth.jwt() ->> 'org_id')::uuid);
+
+-- webhook_subscriptions
+alter table webhook_subscriptions enable row level security;
+drop policy if exists "webhook_subscriptions_tenant_select" on webhook_subscriptions;
+create policy "webhook_subscriptions_tenant_select" on webhook_subscriptions
+  for select using (organization_id = (auth.jwt() ->> 'org_id')::uuid);
+drop policy if exists "webhook_subscriptions_tenant_modify" on webhook_subscriptions;
+create policy "webhook_subscriptions_tenant_modify" on webhook_subscriptions
+  for all using (organization_id = (auth.jwt() ->> 'org_id')::uuid)
+         with check (organization_id = (auth.jwt() ->> 'org_id')::uuid);
+
+-- referrals — user-scoped (owner_user_id, no org_id).
+alter table referrals enable row level security;
+drop policy if exists "referrals_owner_select" on referrals;
+create policy "referrals_owner_select" on referrals
+  for select using (owner_user_id = auth.uid());
+drop policy if exists "referrals_owner_modify" on referrals;
+create policy "referrals_owner_modify" on referrals
+  for all using (owner_user_id = auth.uid())
+         with check (owner_user_id = auth.uid());
+
+-- referral_attributions — inherits via referrals.
+alter table referral_attributions enable row level security;
+drop policy if exists "referral_attributions_select" on referral_attributions;
+create policy "referral_attributions_select" on referral_attributions
+  for select using (
+    referred_user_id = auth.uid()
+    or exists (
+      select 1 from referrals r
+      where r.id = referral_attributions.referral_id
+        and r.owner_user_id = auth.uid()
+    )
+  );
+drop policy if exists "referral_attributions_modify" on referral_attributions;
+create policy "referral_attributions_modify" on referral_attributions
+  for all using (
+    exists (
+      select 1 from referrals r
+      where r.id = referral_attributions.referral_id
+        and r.owner_user_id = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from referrals r
+      where r.id = referral_attributions.referral_id
+        and r.owner_user_id = auth.uid()
+    )
+  );
+
+-- meetings
+alter table meetings enable row level security;
+drop policy if exists "meetings_tenant_select" on meetings;
+create policy "meetings_tenant_select" on meetings
+  for select using (organization_id = (auth.jwt() ->> 'org_id')::uuid);
+drop policy if exists "meetings_tenant_modify" on meetings;
+create policy "meetings_tenant_modify" on meetings
+  for all using (organization_id = (auth.jwt() ->> 'org_id')::uuid)
+         with check (organization_id = (auth.jwt() ->> 'org_id')::uuid);
+
+-- contacts
+alter table contacts enable row level security;
+drop policy if exists "contacts_tenant_select" on contacts;
+create policy "contacts_tenant_select" on contacts
+  for select using (organization_id = (auth.jwt() ->> 'org_id')::uuid);
+drop policy if exists "contacts_tenant_modify" on contacts;
+create policy "contacts_tenant_modify" on contacts
+  for all using (organization_id = (auth.jwt() ->> 'org_id')::uuid)
+         with check (organization_id = (auth.jwt() ->> 'org_id')::uuid);
+
+-- contact_activities — inherits via contacts.
+alter table contact_activities enable row level security;
+drop policy if exists "contact_activities_tenant_select" on contact_activities;
+create policy "contact_activities_tenant_select" on contact_activities
+  for select using (
+    exists (
+      select 1 from contacts c
+      where c.id = contact_activities.contact_id
+        and c.organization_id = (auth.jwt() ->> 'org_id')::uuid
+    )
+  );
+drop policy if exists "contact_activities_tenant_modify" on contact_activities;
+create policy "contact_activities_tenant_modify" on contact_activities
+  for all using (
+    exists (
+      select 1 from contacts c
+      where c.id = contact_activities.contact_id
+        and c.organization_id = (auth.jwt() ->> 'org_id')::uuid
+    )
+  )
+  with check (
+    exists (
+      select 1 from contacts c
+      where c.id = contact_activities.contact_id
+        and c.organization_id = (auth.jwt() ->> 'org_id')::uuid
+    )
+  );
+
+-- marketplace_listings — keyed on publisher_org_id.
+-- Public listings are readable by everyone; modifications only by publisher.
+alter table marketplace_listings enable row level security;
+drop policy if exists "marketplace_listings_select" on marketplace_listings;
+create policy "marketplace_listings_select" on marketplace_listings
+  for select using (
+    visibility = 'public'
+    or publisher_org_id = (auth.jwt() ->> 'org_id')::uuid
+  );
+drop policy if exists "marketplace_listings_tenant_modify" on marketplace_listings;
+create policy "marketplace_listings_tenant_modify" on marketplace_listings
+  for all using (publisher_org_id = (auth.jwt() ->> 'org_id')::uuid)
+         with check (publisher_org_id = (auth.jwt() ->> 'org_id')::uuid);
+
+-- marketplace_installs
+alter table marketplace_installs enable row level security;
+drop policy if exists "marketplace_installs_tenant_select" on marketplace_installs;
+create policy "marketplace_installs_tenant_select" on marketplace_installs
+  for select using (organization_id = (auth.jwt() ->> 'org_id')::uuid);
+drop policy if exists "marketplace_installs_tenant_modify" on marketplace_installs;
+create policy "marketplace_installs_tenant_modify" on marketplace_installs
+  for all using (organization_id = (auth.jwt() ->> 'org_id')::uuid)
+         with check (organization_id = (auth.jwt() ->> 'org_id')::uuid);
+
+-- marketplace_reviews — anyone can read reviews on public listings;
+-- only the reviewer can modify their own review.
+alter table marketplace_reviews enable row level security;
+drop policy if exists "marketplace_reviews_select" on marketplace_reviews;
+create policy "marketplace_reviews_select" on marketplace_reviews
+  for select using (
+    exists (
+      select 1 from marketplace_listings ml
+      where ml.id = marketplace_reviews.listing_id
+        and (ml.visibility = 'public' or ml.publisher_org_id = (auth.jwt() ->> 'org_id')::uuid)
+    )
+  );
+drop policy if exists "marketplace_reviews_owner_modify" on marketplace_reviews;
+create policy "marketplace_reviews_owner_modify" on marketplace_reviews
+  for all using (reviewer_user_id = auth.uid())
+         with check (reviewer_user_id = auth.uid());
+
+-- media_jobs
+alter table media_jobs enable row level security;
+drop policy if exists "media_jobs_tenant_select" on media_jobs;
+create policy "media_jobs_tenant_select" on media_jobs
+  for select using (organization_id = (auth.jwt() ->> 'org_id')::uuid);
+drop policy if exists "media_jobs_tenant_modify" on media_jobs;
+create policy "media_jobs_tenant_modify" on media_jobs
+  for all using (organization_id = (auth.jwt() ->> 'org_id')::uuid)
+         with check (organization_id = (auth.jwt() ->> 'org_id')::uuid);

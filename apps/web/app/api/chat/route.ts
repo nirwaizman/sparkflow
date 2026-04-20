@@ -30,7 +30,9 @@ import {
   observe,
   trackEvent,
 } from "@sparkflow/observability";
-import { getSession } from "@sparkflow/auth";
+import { getSession, type AuthSession } from "@sparkflow/auth";
+import { getDb, conversations, messages } from "@sparkflow/db";
+import { recordUsage } from "@sparkflow/billing";
 import { searchWeb, stringifySources } from "@/lib/search";
 
 export const runtime = "nodejs";
@@ -46,8 +48,9 @@ export async function POST(request: NextRequest) {
     // intentional and explicit so we don't silently break demos or
     // CI when WP-A3 ships.
     const guestMode = request.headers.get("x-guest-mode") === "1";
+    let session: AuthSession | null = null;
     if (!guestMode) {
-      const session = await getSession();
+      session = await getSession();
       if (!session) {
         return NextResponse.json({ error: "unauthorized" }, { status: 401 });
       }
@@ -135,9 +138,70 @@ export async function POST(request: NextRequest) {
       costUsd: result.usage?.costUsd,
     });
 
+    const assistantMessageId = crypto.randomUUID();
+
+    // Persist conversation + messages to DB (fire-and-forget for latency).
+    if (session) {
+      const db = getDb();
+
+      // Create a new conversation (or reuse existing via conversationId).
+      let convId = parsed.conversationId;
+      if (!convId) {
+        const [row] = await db
+          .insert(conversations)
+          .values({
+            organizationId: session.organizationId,
+            userId: session.user.id,
+            title: latestUserMessage.content.slice(0, 120),
+          })
+          .returning({ id: conversations.id })
+          .catch((err) => {
+            logger.error({ err }, "chat.persist.conversation");
+            return [] as { id: string }[];
+          });
+        convId = row?.id;
+      }
+
+      // Save user message + assistant reply.
+      if (convId) {
+        await db
+          .insert(messages)
+          .values([
+            {
+              conversationId: convId,
+              role: "user" as const,
+              content: latestUserMessage.content,
+              mode: decision.mode,
+            },
+            {
+              conversationId: convId,
+              role: "assistant" as const,
+              content: result.content,
+              mode: decision.mode,
+            },
+          ])
+          .catch((err) => logger.error({ err }, "chat.persist.messages"));
+      }
+
+      // Record usage for billing.
+      if (result.usage) {
+        await recordUsage({
+          organizationId: session.organizationId,
+          userId: session.user.id,
+          feature: "chat",
+          provider: result.provider,
+          model: result.model,
+          inputTokens: result.usage.inputTokens ?? 0,
+          outputTokens: result.usage.outputTokens ?? 0,
+          costUsd: result.usage.costUsd ?? 0,
+          latencyMs,
+        }).catch((err) => logger.error({ err }, "chat.persist.usage"));
+      }
+    }
+
     return NextResponse.json({
       message: {
-        id: crypto.randomUUID(),
+        id: assistantMessageId,
         role: "assistant",
         content: result.content,
         sources,
