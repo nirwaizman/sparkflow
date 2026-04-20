@@ -23,7 +23,7 @@
     "@sparkflow/shared": "workspace:*",
     "langfuse": "^3",
     "pino": "^9",
-    "posthog-node": "^4"
+    "posthog-node": "^5"
   },
   "peerDependencies": {
     "@sentry/nextjs": "^8"
