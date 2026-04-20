@@ -15,7 +15,7 @@
     "@types/office-js": "^1.0.379",
     "@types/react": "19.0.10",
     "@types/react-dom": "19.0.4",
-    "office-addin-debugging": "^5",
+    "office-addin-debugging": "^6",
     "typescript": "5.8.2",
     "vite": "^5",
     "@vitejs/plugin-react": "^4"
