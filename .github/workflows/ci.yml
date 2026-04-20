@@ -18,7 +18,7 @@ jobs:
     name: Install & cache
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -63,7 +63,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: install-cache
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           version: 9
@@ -84,7 +84,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: install-cache
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           version: 9
@@ -105,7 +105,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: install-cache
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           version: 9
@@ -125,7 +125,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: install-cache
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           version: 9
@@ -147,7 +147,7 @@ jobs:
     # TODO: flip continue-on-error to false once evals are stable.
     continue-on-error: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: pnpm/action-setup@v4
         with:
           version: 9
