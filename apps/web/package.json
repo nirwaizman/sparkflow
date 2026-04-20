@@ -49,7 +49,7 @@
     "lucide-react": "^0.462",
     "marked": "^15.0.0",
     "nanoid": "^5",
-    "next": "15.2.4",
+    "next": "16.2.4",
     "next-intl": "^3.26",
     "playwright": "^1.48",
     "posthog-js": "^1.160",
