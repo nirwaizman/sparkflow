@@ -1,34 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "version": 2,
-  "buildCommand": "pnpm turbo run build --filter=@sparkflow/web",
-  "installCommand": "pnpm install --frozen-lockfile",
-  "outputDirectory": "apps/web/.next",
   "framework": "nextjs",
-  "regions": ["nrt1"],
-  "env": {
-    "NEXT_PUBLIC_SUPABASE_URL": "@project_env_next_public_supabase_url",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@project_env_next_public_supabase_anon_key",
-    "NEXT_PUBLIC_APP_URL": "@project_env_next_public_app_url",
-    "NEXT_PUBLIC_POSTHOG_KEY": "@project_env_next_public_posthog_key",
-    "NEXT_PUBLIC_POSTHOG_HOST": "@project_env_next_public_posthog_host",
-    "NEXT_PUBLIC_SENTRY_DSN": "@project_env_next_public_sentry_dsn",
-    "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY": "@project_env_next_public_stripe_publishable_key"
-  },
-  "build": {
-    "env": {
-      "SUPABASE_SERVICE_ROLE_KEY": "@project_env_supabase_service_role_key",
-      "SUPABASE_DB_URL": "@project_env_supabase_db_url",
-      "STRIPE_SECRET_KEY": "@project_env_stripe_secret_key",
-      "STRIPE_WEBHOOK_SECRET": "@project_env_stripe_webhook_secret",
-      "OPENAI_API_KEY": "@project_env_openai_api_key",
-      "ANTHROPIC_API_KEY": "@project_env_anthropic_api_key",
-      "RESEND_API_KEY": "@project_env_resend_api_key",
-      "SENTRY_AUTH_TOKEN": "@project_env_sentry_auth_token",
-      "INNGEST_EVENT_KEY": "@project_env_inngest_event_key",
-      "INNGEST_SIGNING_KEY": "@project_env_inngest_signing_key"
-    }
-  },
   "rewrites": [
     {
       "source": "/api/v1/:path*",
@@ -78,12 +51,6 @@
   "functions": {
     "apps/web/app/api/**/*.{js,ts}": {
       "maxDuration": 60
-    },
-    "apps/web/app/api/chat/**/*.{js,ts}": {
-      "maxDuration": 300
-    },
-    "apps/web/app/api/sheets/generate/**/*.{js,ts}": {
-      "maxDuration": 300
     }
   },
   "crons": []
